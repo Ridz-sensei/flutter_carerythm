@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../service/jadwal_service.dart';
 
 // Halaman Tambah Jadwal
 class TambahJadwalPage extends StatefulWidget {
@@ -34,6 +35,10 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
   TimeOfDay? _waktuMulai;
   TimeOfDay? _waktuSelesai;
 
+  final JadwalService _jadwalService = JadwalService(
+    baseUrl: 'http://localhost:8000/api',
+  );
+
   // Fungsi untuk menampilkan pemilih waktu (TimePicker)
   Future<void> _pilihWaktu(BuildContext context, bool isMulai) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -48,6 +53,56 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
           _waktuSelesai = picked;
         }
       });
+    }
+  }
+
+  Future<void> _simpanJadwal() async {
+    // Validasi sederhana
+    if (_namaController.text.isEmpty ||
+        _kategoriTerpilih == null ||
+        _waktuMulai == null ||
+        _waktuSelesai == null ||
+        _hariTerpilih.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Semua field wajib diisi!')));
+      return;
+    }
+
+    final data = {
+      'nama_jadwal': _namaController.text,
+      'kategori': _kategoriTerpilih,
+      'waktu_mulai': _waktuMulai!.format(context),
+      'waktu_selesai': _waktuSelesai!.format(context),
+      'hari': _hariTerpilih,
+      'catatan': _deskripsiController.text,
+    };
+
+    try {
+      final response = await _jadwalService.addJadwal(data);
+      // Debug respons backend jika gagal
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        Navigator.pop(context, true);
+      } else {
+        // Tampilkan pesan error dari backend jika ada
+        String msg = 'Gagal menyimpan jadwal';
+        try {
+          // Perbaiki: gunakan response.body langsung, bukan resJson
+          if (response.body.isNotEmpty) {
+            final json = jsonDecode(response.body);
+            if (json is Map && json['message'] != null) {
+              msg = json['message'].toString();
+            }
+          }
+        } catch (_) {}
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan koneksi')));
     }
   }
 
@@ -153,13 +208,7 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
             const SizedBox(height: 24),
             // Tombol simpan
             ElevatedButton(
-              onPressed: () {
-                // Di sini kamu bisa tambahkan validasi dan simpan data
-                // Contoh validasi bisa: pastikan semua field terisi
-
-                // Setelah simpan, kembali ke halaman sebelumnya
-                Navigator.pop(context);
-              },
+              onPressed: _simpanJadwal,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7A3CFF),
                 foregroundColor: Colors.white,

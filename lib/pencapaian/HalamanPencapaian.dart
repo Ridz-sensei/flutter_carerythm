@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'TambahPencapaian.dart';
+import '../user/TambahPencapaian.dart';
 
 class Pencapaian extends StatelessWidget {
   const Pencapaian({super.key});
@@ -25,37 +25,38 @@ class Pencapaian extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Target Kamu', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Target Kamu',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Olahraga'),
-                      Text('6/10'),
-                    ],
+                    children: [Text('Olahraga'), Text('6/10')],
                   ),
                   const SizedBox(height: 10),
                   LinearProgressIndicator(
                     value: 0.6,
                     minHeight: 12,
                     backgroundColor: Colors.deepPurple[200],
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.deepPurple,
+                    ),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Membaca'),
-                      Text('4/20'),
-                    ],
+                    children: [Text('Membaca'), Text('4/20')],
                   ),
                   const SizedBox(height: 10),
                   LinearProgressIndicator(
                     value: 0.2,
                     minHeight: 12,
                     backgroundColor: Colors.deepPurple[200],
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.deepPurple,
+                    ),
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ],
@@ -70,33 +71,51 @@ class Pencapaian extends StatelessWidget {
                   Card(
                     elevation: 3,
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                     child: ListTile(
-                      leading: const Icon(Icons.emoji_events, color: Colors.amber),
+                      leading: const Icon(
+                        Icons.emoji_events,
+                        color: Colors.amber,
+                      ),
                       title: const Text('Belajar 7 Hari Berturut-turut'),
-                      trailing: const Icon(Icons.check_circle, color: Colors.green),
+                      trailing: const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                      ),
                     ),
                   ),
 
                   Card(
                     elevation: 3,
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                     child: ListTile(
                       leading: const Icon(Icons.task_alt, color: Colors.green),
                       title: const Text('Mengerjakan semua tugas minggu ini'),
-                      trailing: const Icon(Icons.check_circle, color: Colors.green),
+                      trailing: const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                      ),
                     ),
                   ),
 
                   Card(
                     elevation: 3,
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                     child: ListTile(
                       leading: const Icon(Icons.alarm, color: Colors.orange),
                       title: const Text('Bangun pagi 5x'),
-                      trailing: const Icon(Icons.check_circle, color: Colors.green),
+                      trailing: const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                      ),
                     ),
                   ),
                 ],
@@ -109,24 +128,29 @@ class Pencapaian extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: () {
                     Navigator.push(
-                      context, 
-                      MaterialPageRoute(builder: (context)=>AddPencapaianPage())
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddPencapaianPage(),
+                      ),
                     );
                   },
-                  icon: const Icon(Icons.add, color: Colors.white,),
-                  label: const Text("Tambah", style: TextStyle(color: Colors.white),),
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text(
+                    "Tambah",
+                    style: TextStyle(color: Colors.white),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {
-                  },
-                  icon: const Icon(Icons.delete, color: Colors.white,),
-                  label: const Text("Hapus", style: TextStyle(color: Colors.white),),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                  onPressed: () {},
+                  icon: const Icon(Icons.delete, color: Colors.white),
+                  label: const Text(
+                    "Hapus",
+                    style: TextStyle(color: Colors.white),
                   ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 ),
               ],
             ),

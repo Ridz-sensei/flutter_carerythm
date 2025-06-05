@@ -1,4 +1,4 @@
-import '../editKegiatan.dart';
+import 'editKegiatan.dart';
 import 'package:flutter/material.dart';
 import 'tambahKegiatan.dart';
 
