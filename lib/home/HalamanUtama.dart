@@ -1,10 +1,10 @@
-import 'package:care_rythm/jadwal_page.dart';
-import 'package:care_rythm/profil_page.dart';
-import 'package:care_rythm/teman_list_page.dart';
 import 'package:flutter/material.dart';
-import 'HalamanPencapaian.dart';
-import 'Kegiatan.dart';
-import 'tambahKegiatan.dart';
+import '../jadwal/jadwal_page.dart';
+import '../user/profil_page.dart';
+import '../user/teman_list_page.dart';
+import '../pencapaian/HalamanPencapaian.dart';
+import '../kegiatan/Kegiatan.dart';
+import '../kegiatan/tambahKegiatan.dart';
 
 class HomePage extends StatefulWidget {
   final String email;
@@ -31,10 +31,10 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void dropuptambah(BuildContext context){
+  void dropuptambah(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor:  Colors.transparent,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return SizedBox(
           height: 175,
@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context)=> TambahKegiatan())
+                    MaterialPageRoute(builder: (context) => TambahKegiatan()),
                   );
                 },
                 child: const Text("Tambah Kegiatan"),
@@ -64,13 +64,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void dropupmenu(BuildContext context){
+  void dropupmenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return SizedBox(
-          height: 250, 
+          height: 250,
           width: double.infinity,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.push(
-                    context, 
+                    context,
                     MaterialPageRoute(builder: (context) => TemanListPage()),
                   );
                 },
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.push(
-                    context, 
+                    context,
                     MaterialPageRoute(builder: (context) => Pencapaian()),
                   );
                 },
@@ -106,7 +106,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.push(
-                    context, 
+                    context,
                     MaterialPageRoute(builder: (context) => PageKegiatan()),
                   );
                 },
@@ -139,7 +139,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // kartu profil
             Container(
               height: 140,
@@ -155,38 +154,39 @@ class _HomePageState extends State<HomePage> {
                   Column(
                     children: [
                       GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ProfilPage()),
-                        );
-                      },
-                      child: Container(
-                        height: 80,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/profil.jpeg'),
-                            fit: BoxFit.cover,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfilPage(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          height: 80,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: const DecorationImage(
+                              image: AssetImage('assets/images/profil.jpeg'),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                      const SizedBox(height: 5,),
-                      Row(children: [
-                        Text(
-                          '${widget.email}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.white
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Text(
+                            '${widget.email}',
+                            style: TextStyle(fontSize: 10, color: Colors.white),
                           ),
-                        )
-                      ],),
+                        ],
+                      ),
                     ],
                   ),
-                  const SizedBox(width: 10,),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -197,13 +197,13 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white
+                            color: Colors.white,
                           ),
-                        )
+                        ),
                       ],
-                    )
+                    ),
                   ),
-                  Icon(Icons.more_horiz, color: Colors.white)
+                  Icon(Icons.more_horiz, color: Colors.white),
                 ],
               ),
             ),
@@ -216,19 +216,22 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text('Kegiatan Terkini:', style: TextStyle(color: Colors.black),),
+                  Text(
+                    'Kegiatan Terkini:',
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ],
               ),
             ),
+
             // daftar kegiatan
-            
             Container(
               height: 75,
               margin: const EdgeInsets.only(left: 20, right: 20),
               padding: const EdgeInsets.all(paddingdaftar),
               decoration: BoxDecoration(
                 color: const Color.fromARGB(50, 104, 58, 183),
-                borderRadius: BorderRadius.circular(10)
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -240,13 +243,13 @@ class _HomePageState extends State<HomePage> {
                         '10.30',
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.deepPurple[400]
+                          color: Colors.deepPurple[400],
                         ),
                       ),
-                      Icon(Icons.school, color: Colors.deepPurple[400],),
+                      Icon(Icons.school, color: Colors.deepPurple[400]),
                     ],
                   ),
-                  const SizedBox(width: 20,),
+                  const SizedBox(width: 20),
                   Container(
                     width: 150,
                     child: Column(
@@ -257,8 +260,8 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.deepPurple[400],
-                            fontWeight: FontWeight.bold
-                          ),  
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -267,26 +270,29 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: (){}, 
+                        onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple[100],
-                          foregroundColor: Colors.deepPurple[400]
+                          foregroundColor: Colors.deepPurple[400],
                         ),
-                        child: Text('selesai', style: TextStyle(color: Colors.deepPurple[400]),),
-                      )
+                        child: Text(
+                          'selesai',
+                          style: TextStyle(color: Colors.deepPurple[400]),
+                        ),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
-            SizedBox(height: 10,),
+            SizedBox(height: 10),
             Container(
               height: 75,
               margin: const EdgeInsets.only(left: 20, right: 20),
               padding: const EdgeInsets.all(paddingdaftar),
               decoration: BoxDecoration(
                 color: const Color.fromARGB(50, 104, 58, 183),
-                borderRadius: BorderRadius.circular(10)
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -298,13 +304,13 @@ class _HomePageState extends State<HomePage> {
                         '12.30',
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.deepPurple[400]
+                          color: Colors.deepPurple[400],
                         ),
                       ),
-                      Icon(Icons.school, color: Colors.deepPurple[400],),
+                      Icon(Icons.school, color: Colors.deepPurple[400]),
                     ],
                   ),
-                  const SizedBox(width: 20,),
+                  const SizedBox(width: 20),
                   Container(
                     width: 150,
                     child: Column(
@@ -315,8 +321,8 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.deepPurple[400],
-                            fontWeight: FontWeight.bold
-                          ),  
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -325,26 +331,29 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: (){}, 
+                        onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple[100],
-                          foregroundColor: Colors.deepPurple[400]
+                          foregroundColor: Colors.deepPurple[400],
                         ),
-                        child: Text('selesai', style: TextStyle(color: Colors.deepPurple[400]),),
-                      )
+                        child: Text(
+                          'selesai',
+                          style: TextStyle(color: Colors.deepPurple[400]),
+                        ),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
-            SizedBox(height: 10,),
+            SizedBox(height: 10),
             Container(
               height: 75,
               margin: const EdgeInsets.only(left: 20, right: 20),
               padding: const EdgeInsets.all(paddingdaftar),
               decoration: BoxDecoration(
                 color: const Color.fromARGB(50, 104, 58, 183),
-                borderRadius: BorderRadius.circular(10)
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -356,13 +365,13 @@ class _HomePageState extends State<HomePage> {
                         '14.30',
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.deepPurple[400]
+                          color: Colors.deepPurple[400],
                         ),
                       ),
-                      Icon(Icons.book_sharp, color: Colors.deepPurple[400],),
+                      Icon(Icons.book_sharp, color: Colors.deepPurple[400]),
                     ],
                   ),
-                  const SizedBox(width: 20,),
+                  const SizedBox(width: 20),
                   Container(
                     width: 150,
                     child: Column(
@@ -373,8 +382,8 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.deepPurple[400],
-                            fontWeight: FontWeight.bold
-                          ),  
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -383,30 +392,33 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: (){}, 
+                        onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple[100],
-                          foregroundColor: Colors.deepPurple[400]
+                          foregroundColor: Colors.deepPurple[400],
                         ),
-                        child: Text('selesai', style: TextStyle(color: Colors.deepPurple[400]),),
-                      )
+                        child: Text(
+                          'selesai',
+                          style: TextStyle(color: Colors.deepPurple[400]),
+                        ),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 10,),
+            const SizedBox(height: 10),
             // pencapaianmu
             Container(
               padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text('Pencapaianmu:', style: TextStyle(color: Colors.black),),
+                  Text('Pencapaianmu:', style: TextStyle(color: Colors.black)),
                 ],
               ),
             ),
-            // daftar pencapaianmu 
+            // daftar pencapaianmu
             Container(
               margin: const EdgeInsets.only(right: 20, left: 20),
               child: Row(
@@ -424,14 +436,18 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Icon(Icons.fitness_center, size: 40,color: Colors.red,),
+                          Icon(
+                            Icons.fitness_center,
+                            size: 40,
+                            color: Colors.red,
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                            Text('$count', style: TextStyle(fontSize: 20),),
+                              Text('$count', style: TextStyle(fontSize: 20)),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -448,23 +464,21 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Icon(Icons.book, size: 40, color: Colors.amber,),
+                          Icon(Icons.book, size: 40, color: Colors.amber),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                            Text('$count1', style: TextStyle(fontSize: 20),),
+                              Text('$count1', style: TextStyle(fontSize: 20)),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  
                 ],
               ),
-            )
-
+            ),
           ],
         ),
       ),
@@ -482,14 +496,16 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context)=>JadwalPage())
+                    MaterialPageRoute(builder: (context) => JadwalPage()),
                   );
                 },
               ),
-              const SizedBox(width: 50), 
+              const SizedBox(width: 50),
               IconButton(
                 icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () {dropupmenu(context);},
+                onPressed: () {
+                  dropupmenu(context);
+                },
               ),
             ],
           ),
@@ -504,7 +520,7 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Colors.white,
           hoverColor: Colors.white70,
           shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: Colors.deepPurple,),
+          child: const Icon(Icons.add, color: Colors.deepPurple),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

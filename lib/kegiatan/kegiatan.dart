@@ -1,4 +1,4 @@
-import 'package:care_rythm/editKegiatan.dart';
+import '../editKegiatan.dart';
 import 'package:flutter/material.dart';
 import 'tambahKegiatan.dart';
 
@@ -8,23 +8,23 @@ class PageKegiatan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kegiatan'),
-      ),
+      appBar: AppBar(title: const Text('Kegiatan')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context)=>TambahKegiatan()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TambahKegiatan()),
+                );
               },
               icon: const Icon(Icons.add),
               label: const Text('Tambah Kegiatan'),
             ),
             const SizedBox(height: 16),
             Expanded(
-              
               child: ListView.builder(
                 itemCount: 4,
                 itemBuilder: (context, index) {
@@ -38,17 +38,20 @@ class PageKegiatan extends StatelessWidget {
                         // width: 100,
                         // alignment: Alignment.topLeft,
                         // ),
-
                         ListTile(
                           title: const Text('Membaca'),
-                          subtitle: const Text('Baca buku 10 halaman - Rabu, Kamis, Jumat - 08.30'),
+                          subtitle: const Text(
+                            'Baca buku 10 halaman - Rabu, Kamis, Jumat - 08.30',
+                          ),
                           trailing: IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () {
                               // Aksi pindah halaman di sini
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const EditKegiatan()),
+                                MaterialPageRoute(
+                                  builder: (context) => const EditKegiatan(),
+                                ),
                               );
                             },
                           ),

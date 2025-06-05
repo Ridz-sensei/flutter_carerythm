@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'HalamanDaftar.dart'; 
-import 'HalamanUtama.dart'; 
+import '../daftar/HalamanDaftar.dart';
+import 'HalamanUtama.dart';
 
 void main() {
   runApp(CareRythmApp());
@@ -17,9 +17,7 @@ class CareRythmApp extends StatelessWidget {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.deepPurple[50],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
       home: LoginPage(),
@@ -41,10 +39,7 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/images/Logo_ungu.png',
-                height: 100,
-              ),
+              Image.asset('assets/images/Logo_ungu.png', height: 100),
               const SizedBox(height: 40),
               TextField(
                 controller: emailController,
@@ -56,7 +51,7 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 20),
               TextField(
                 controller: passwordController,
-                  obscureText: true, 
+                obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: Icon(Icons.lock, color: Colors.deepPurple),
@@ -67,11 +62,10 @@ class LoginPage extends StatelessWidget {
                 onPressed: () {
                   final String email = emailController.text;
                   final String password = passwordController.text;
-                  Navigator.push(context,
+                  Navigator.push(
+                    context,
                     MaterialPageRoute(
-                      builder: (context) => HomePage(
-                        email: email,
-                      )
+                      builder: (context) => HomePage(email: email),
                     ),
                   );
                 },
@@ -79,10 +73,13 @@ class LoginPage extends StatelessWidget {
                   backgroundColor: Colors.deepPurple,
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Text('Masuk', style: TextStyle(fontSize: 16, color: Colors.white)),
+                child: Text(
+                  'Masuk',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
               const SizedBox(height: 20),
               TextButton(
@@ -96,7 +93,7 @@ class LoginPage extends StatelessWidget {
                   'Belum punya akun? Daftar',
                   style: TextStyle(color: Colors.deepPurple),
                 ),
-              )
+              ),
             ],
           ),
         ),
