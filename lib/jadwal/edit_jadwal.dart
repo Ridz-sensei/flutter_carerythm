@@ -16,66 +16,218 @@ class EditJadwalPage extends StatefulWidget {
 }
 
 class _EditJadwalPageState extends State<EditJadwalPage> {
-  final JadwalService _jadwalService = JadwalService(
-    baseUrl: 'http://localhost:8000/api',
-  );
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _namaController;
-  late TextEditingController _deskripsiController;
+  late TextEditingController _catatanController;
+  String? _kategoriTerpilih;
+  List<String> _hariTerpilih = [];
+  TimeOfDay? _waktuMulai;
+  TimeOfDay? _waktuSelesai;
+
+  final List<String> _kategoriList = [
+    'Pelajaran',
+    'Olahraga',
+    'Hiburan',
+    'Lainnya',
+  ];
+  final List<String> _hariList = [
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu'
+  ];
 
   @override
   void initState() {
     super.initState();
     _namaController = TextEditingController(
-      text: widget.jadwalData['nama'] ?? '',
+      text: widget.jadwalData['nama_jadwal'] ?? widget.jadwalData['nama'] ?? '',
     );
-    _deskripsiController = TextEditingController(
-      text: widget.jadwalData['deskripsi'] ?? '',
+    _catatanController = TextEditingController(
+      text: widget.jadwalData['catatan'] ?? widget.jadwalData['deskripsi'] ?? '',
+    );
+    _kategoriTerpilih = widget.jadwalData['kategori'];
+    final hariRaw = widget.jadwalData['hari'];
+    if (hariRaw is List) {
+      _hariTerpilih = List<String>.from(hariRaw);
+    } else if (hariRaw is String) {
+      _hariTerpilih = hariRaw.split(',').map((e) => e.trim()).toList();
+    }
+    _waktuMulai = _parseTime(widget.jadwalData['waktu_mulai']);
+    _waktuSelesai = _parseTime(widget.jadwalData['waktu_selesai']);
+  }
+
+  TimeOfDay? _parseTime(dynamic time) {
+    if (time == null || time.toString().isEmpty) return null;
+    final parts = time.toString().split(':');
+    if (parts.length < 2) return null;
+    return TimeOfDay(
+      hour: int.tryParse(parts[0]) ?? 0,
+      minute: int.tryParse(parts[1]) ?? 0,
     );
   }
 
+  Future<void> _pilihWaktu(BuildContext context, bool isMulai) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: isMulai
+          ? (_waktuMulai ?? TimeOfDay.now())
+          : (_waktuSelesai ?? TimeOfDay.now()),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isMulai) {
+          _waktuMulai = picked;
+        } else {
+          _waktuSelesai = picked;
+        }
+      });
+    }
+  }
+
   Future<void> _updateJadwal() async {
+    if (!_formKey.currentState!.validate() ||
+        _kategoriTerpilih == null ||
+        _waktuMulai == null ||
+        _waktuSelesai == null ||
+        _hariTerpilih.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua field wajib diisi!')),
+      );
+      return;
+    }
     final data = {
-      'nama': _namaController.text,
-      'deskripsi': _deskripsiController.text,
+      'nama_jadwal': _namaController.text,
+      'kategori': _kategoriTerpilih,
+      'waktu_mulai': "${_waktuMulai!.hour.toString().padLeft(2, '0')}:${_waktuMulai!.minute.toString().padLeft(2, '0')}",
+      'waktu_selesai': "${_waktuSelesai!.hour.toString().padLeft(2, '0')}:${_waktuSelesai!.minute.toString().padLeft(2, '0')}",
+      'hari': List<String>.from(_hariTerpilih),
+      'catatan': _catatanController.text,
     };
     try {
-      final response = await _jadwalService.updateJadwal(widget.jadwalId, data);
-      if (response.statusCode == 200) {
+      final success = await JadwalService.updateJadwal(widget.jadwalId, data);
+      if (success) {
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal update jadwal')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal update jadwal')),
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan koneksi')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan koneksi: $e')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Edit Jadwal')),
-      body: ListView(
-        padding: EdgeInsets.all(24),
-        children: [
-          TextField(
-            controller: _namaController,
-            decoration: InputDecoration(labelText: 'Nama Kegiatan'),
+      appBar: AppBar(title: const Text('Edit Jadwal'), backgroundColor: const Color(0xFF7A3CFF)),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _namaController,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Jadwal',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Nama jadwal tidak boleh kosong' : null,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Kategori',
+                  border: OutlineInputBorder(),
+                ),
+                value: _kategoriTerpilih,
+                items: _kategoriList
+                    .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _kategoriTerpilih = value;
+                  });
+                },
+                validator: (value) => value == null ? 'Pilih kategori' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _catatanController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Catatan',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value != null && value.length > 255 ? 'Maksimal 255 karakter' : null,
+              ),
+              const SizedBox(height: 16),
+              const Text('Pilih Hari:'),
+              Wrap(
+                spacing: 8,
+                children: _hariList.map((hari) {
+                  return FilterChip(
+                    label: Text(hari),
+                    selected: _hariTerpilih.contains(hari),
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _hariTerpilih.add(hari);
+                        } else {
+                          _hariTerpilih.remove(hari);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _pilihWaktu(context, true),
+                      child: Text(
+                        _waktuMulai != null
+                            ? 'Mulai: ${_waktuMulai!.hour.toString().padLeft(2, '0')}:${_waktuMulai!.minute.toString().padLeft(2, '0')}'
+                            : 'Waktu Mulai',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _pilihWaktu(context, false),
+                      child: Text(
+                        _waktuSelesai != null
+                            ? 'Selesai: ${_waktuSelesai!.hour.toString().padLeft(2, '0')}:${_waktuSelesai!.minute.toString().padLeft(2, '0')}'
+                            : 'Waktu Selesai',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _updateJadwal,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7A3CFF),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text("Simpan Perubahan"),
+              ),
+            ],
           ),
-          SizedBox(height: 16),
-          TextField(
-            controller: _deskripsiController,
-            decoration: InputDecoration(labelText: 'Deskripsi'),
-          ),
-          SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _updateJadwal,
-            child: Text('Simpan Perubahan'),
-          ),
-        ],
+        ),
       ),
     );
   }

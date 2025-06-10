@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import '../service/jadwal_service.dart';
+import 'dart:convert';
 
 // Halaman Tambah Jadwal
 class TambahJadwalPage extends StatefulWidget {
@@ -12,13 +11,17 @@ class TambahJadwalPage extends StatefulWidget {
 }
 
 class _TambahJadwalPageState extends State<TambahJadwalPage> {
-  // Controller untuk input nama kegiatan
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _namaController = TextEditingController();
-  // Controller untuk input deskripsi kegiatan
   final TextEditingController _deskripsiController = TextEditingController();
 
-  // Daftar hari yang bisa dipilih
-  final List<String> _hari = [
+  final List<String> _kategoriList = [
+    'Pelajaran',
+    'Olahraga',
+    'Hiburan',
+    'Lainnya',
+  ];
+  final List<String> _hariList = [
     'Senin',
     'Selasa',
     'Rabu',
@@ -27,21 +30,13 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
     'Sabtu',
     'Minggu',
   ];
-  // Hari-hari yang dipilih user
   final List<String> _hariTerpilih = [];
 
-  // Kategori kegiatan yang dipilih user
   String? _kategoriTerpilih;
-
-  // Waktu mulai dan selesai yang dipilih
   TimeOfDay? _waktuMulai;
   TimeOfDay? _waktuSelesai;
+  bool _isLoading = false;
 
-  final JadwalService _jadwalService = JadwalService(
-    baseUrl: 'http://localhost:8000/api',
-  );
-
-  // Fungsi untuk menampilkan pemilih waktu (TimePicker)
   Future<void> _pilihWaktu(BuildContext context, bool isMulai) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -59,52 +54,66 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
   }
 
   Future<void> _simpanJadwal() async {
-    // Validasi sederhana
-    if (_namaController.text.isEmpty ||
+    setState(() {
+      _isLoading = true;
+    });
+    if (!_formKey.currentState!.validate() ||
         _kategoriTerpilih == null ||
         _waktuMulai == null ||
         _waktuSelesai == null ||
         _hariTerpilih.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Semua field wajib diisi!')));
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua field wajib diisi!')),
+      );
       return;
     }
 
-    final data = {
+    final jadwal = {
       'nama_jadwal': _namaController.text,
       'kategori': _kategoriTerpilih,
-      'waktu_mulai': _waktuMulai!.format(context),
-      'waktu_selesai': _waktuSelesai!.format(context),
-      'hari': _hariTerpilih,
-      'catatan': _deskripsiController.text,
+      'waktu_mulai': "${_waktuMulai!.hour.toString().padLeft(2, '0')}:${_waktuMulai!.minute.toString().padLeft(2, '0')}",
+      'waktu_selesai': "${_waktuSelesai!.hour.toString().padLeft(2, '0')}:${_waktuSelesai!.minute.toString().padLeft(2, '0')}",
+      'hari': List<String>.from(_hariTerpilih), // pastikan array of string
+      'catatan': _deskripsiController.text.isEmpty ? null : _deskripsiController.text,
     };
-
+    print('Data dikirim ke backend: $jadwal');
     try {
-      final response = await _jadwalService.addJadwal(data);
-      // Debug respons backend jika gagal
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        Navigator.pop(context, true);
-      } else {
-        // Tampilkan pesan error dari backend jika ada
-        String msg = 'Gagal menyimpan jadwal';
-        try {
-          // Perbaiki: gunakan response.body langsung, bukan resJson
-          if (response.body.isNotEmpty) {
-            final json = jsonDecode(response.body);
-            if (json is Map && json['message'] != null) {
-              msg = json['message'].toString();
-            }
-          }
-        } catch (_) {}
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(msg)));
+      final success = await JadwalService.addJadwal(jadwal);
+      setState(() {
+        _isLoading = false;
+      });
+      if (success) {
+        if (mounted) {
+          Navigator.pop(context, true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Jadwal berhasil ditambahkan')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan koneksi')));
+      setState(() {
+        _isLoading = false;
+      });
+      String errorMsg = 'Gagal menambah jadwal: $e';
+      try {
+        final err = e.toString();
+        final jsonStart = err.indexOf('{');
+        if (jsonStart != -1) {
+          final jsonStr = err.substring(jsonStart);
+          final decoded = jsonDecode(jsonStr);
+          if (decoded is Map && decoded['message'] != null) {
+            errorMsg = decoded['message'].toString();
+          }
+        }
+      } catch (_) {}
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg)),
+        );
+      }
     }
   }
 
@@ -117,107 +126,116 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: ListView(
-          children: [
-            // Input nama kegiatan
-            TextField(
-              controller: _namaController,
-              decoration: const InputDecoration(
-                labelText: 'Nama Kegiatan',
-                border: OutlineInputBorder(),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _namaController,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Jadwal',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Nama jadwal tidak boleh kosong' : null,
               ),
-            ),
-            const SizedBox(height: 16),
-            // Input deskripsi kegiatan
-            TextField(
-              controller: _deskripsiController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Deskripsi',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Kategori',
+                  border: OutlineInputBorder(),
+                ),
+                items: _kategoriList
+                    .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                    .toList(),
+                value: _kategoriTerpilih,
+                onChanged: (value) {
+                  setState(() {
+                    _kategoriTerpilih = value;
+                  });
+                },
+                validator: (value) => value == null ? 'Pilih kategori' : null,
               ),
-            ),
-            const SizedBox(height: 16),
-            // Dropdown untuk memilih kategori kegiatan
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Kategori',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _deskripsiController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Catatan',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value != null && value.length > 255 ? 'Maksimal 255 karakter' : null,
               ),
-              items: const [
-                DropdownMenuItem(value: 'Olahraga', child: Text('Olahraga')),
-                DropdownMenuItem(value: 'Membaca', child: Text('Membaca')),
-              ],
-              value: _kategoriTerpilih,
-              onChanged: (value) {
-                setState(() {
-                  _kategoriTerpilih = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            // Judul untuk bagian hari
-            const Text('Pilih Hari:'),
-            // Chip pilihan hari
-            Wrap(
-              spacing: 8,
-              children:
-                  _hari.map((hari) {
-                    return FilterChip(
-                      label: Text(hari),
-                      selected: _hariTerpilih.contains(hari),
-                      onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _hariTerpilih.add(hari);
-                          } else {
-                            _hariTerpilih.remove(hari);
-                          }
-                        });
+              const SizedBox(height: 16),
+              const Text('Pilih Hari:'),
+              Wrap(
+                spacing: 8,
+                children: _hariList.map((hari) {
+                  return FilterChip(
+                    label: Text(hari),
+                    selected: _hariTerpilih.contains(hari),
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _hariTerpilih.add(hari);
+                        } else {
+                          _hariTerpilih.remove(hari);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _pilihWaktu(context, true),
+                      child: Text(
+                        _waktuMulai != null
+                            ? 'Mulai: ${_waktuMulai!.hour.toString().padLeft(2, '0')}:${_waktuMulai!.minute.toString().padLeft(2, '0')}'
+                            : 'Waktu Mulai',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _pilihWaktu(context, false),
+                      child: Text(
+                        _waktuSelesai != null
+                            ? 'Selesai: ${_waktuSelesai!.hour.toString().padLeft(2, '0')}:${_waktuSelesai!.minute.toString().padLeft(2, '0')}'
+                            : 'Waktu Selesai',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        if (_formKey.currentState!.validate()) {
+                          _simpanJadwal();
+                        }
                       },
-                    );
-                  }).toList(),
-            ),
-            const SizedBox(height: 16),
-            // Pilihan waktu mulai dan selesai dalam satu baris
-            Row(
-              children: [
-                // Tombol untuk pilih waktu mulai
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _pilihWaktu(context, true),
-                    child: Text(
-                      _waktuMulai != null
-                          ? 'Mulai: ${_waktuMulai!.format(context)}'
-                          : 'Waktu Mulai',
-                    ),
-                  ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7A3CFF),
+                  foregroundColor: Colors.white,
                 ),
-                const SizedBox(width: 12),
-                // Tombol untuk pilih waktu selesai
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _pilihWaktu(context, false),
-                    child: Text(
-                      _waktuSelesai != null
-                          ? 'Selesai: ${_waktuSelesai!.format(context)}'
-                          : 'Waktu Selesai',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            // Tombol simpan
-            ElevatedButton(
-              onPressed: _simpanJadwal,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7A3CFF),
-                foregroundColor: Colors.white,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text("Simpan"),
               ),
-              child: const Text("Simpan"),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

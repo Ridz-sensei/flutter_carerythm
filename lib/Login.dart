@@ -5,6 +5,8 @@ import 'service/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'kegiatan/tambahKegiatan.dart';
 import 'kegiatan/editKegiatan.dart';
+import 'jadwal/jadwal_page.dart';
+import 'jadwal/tambah_jadwal_page.dart';
 
 class CareRythmApp extends StatelessWidget {
   const CareRythmApp({super.key});
@@ -27,6 +29,8 @@ class CareRythmApp extends StatelessWidget {
       routes: {
         '/tambah': (context) => const TambahKegiatan(),
         '/edit': (context) => const EditKegiatan(),
+        '/jadwal': (context) => const JadwalPage(),
+        '/tambahjadwal': (context) => const TambahJadwalPage(),
       },
     );
   }

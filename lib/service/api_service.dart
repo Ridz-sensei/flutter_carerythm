@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user.dart'; // Pastikan path sesuai struktur folder Anda
+import '../models/user.dart';
 
 /// Service untuk autentikasi user (login dan get user)
 class AuthApi {
@@ -36,6 +36,7 @@ class AuthApi {
       }
       print('Token yang ditemukan: $token'); // Debug: print token yang ditemukan
 
+      // Simpan token ke SharedPreferences (seperti di tambah jadwal)
       if (token != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
