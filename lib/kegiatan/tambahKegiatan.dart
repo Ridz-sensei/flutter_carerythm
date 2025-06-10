@@ -30,22 +30,29 @@ class _TambahKegiatanState extends State<TambahKegiatan> {
       'waktu_mulai': "${_waktuMulai.hour.toString().padLeft(2, '0')}:${_waktuMulai.minute.toString().padLeft(2, '0')}",
       'waktu_selesai': "${_waktuSelesai.hour.toString().padLeft(2, '0')}:${_waktuSelesai.minute.toString().padLeft(2, '0')}",
       'tempat': _tempatController.text.isEmpty ? null : _tempatController.text,
+      
     };
-    final success = await ApiService.tambahKegiatan(kegiatan);
-    setState(() {
-      _isLoading = false;
-    });
-    if (success) {
-      if (mounted) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kegiatan berhasil ditambahkan')),
-        );
+    print('Data dikirim ke backend: $kegiatan');
+    try {
+      final success = await ApiService.tambahKegiatan(kegiatan);
+      setState(() {
+        _isLoading = false;
+      });
+      if (success) {
+        if (mounted) {
+          Navigator.pop(context, true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Kegiatan berhasil ditambahkan')),
+          );
+        }
       }
-    } else {
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal menambah kegiatan')),
+          SnackBar(content: Text('Gagal menambah kegiatan: $e')),
         );
       }
     }
@@ -54,7 +61,7 @@ class _TambahKegiatanState extends State<TambahKegiatan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Hilangkan AppBar agar lebih mirip desain web
+      
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -64,7 +71,7 @@ class _TambahKegiatanState extends State<TambahKegiatan> {
             end: Alignment.bottomCenter,
             colors: [
               Colors.white,
-              Color.fromRGBO(138, 43, 226, 0.5), // ungu transparan
+              Color.fromRGBO(138, 43, 226, 0.5),
             ],
           ),
         ),

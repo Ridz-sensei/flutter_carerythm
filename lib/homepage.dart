@@ -211,7 +211,7 @@ class _HomePageState extends State<HomePage> {
                       Row(
                         children: [
                           Text(
-                            '${widget.email}',
+                            widget.email,
                             style: TextStyle(fontSize: 10, color: Colors.white),
                           ),
                         ],
@@ -225,7 +225,7 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$username',
+                          username,
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
@@ -282,7 +282,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   const SizedBox(width: 20),
-                  Container(
+                  SizedBox(
                     width: 150,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -343,7 +343,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   const SizedBox(width: 20),
-                  Container(
+                  SizedBox(
                     width: 150,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -404,7 +404,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   const SizedBox(width: 20),
-                  Container(
+                  SizedBox(
                     width: 150,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

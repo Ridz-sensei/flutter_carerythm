@@ -6,6 +6,8 @@ class HalamanDaftar extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController repasswordController = TextEditingController();
 
+  HalamanDaftar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

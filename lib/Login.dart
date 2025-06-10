@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'Daftar.dart';
 import 'homepage.dart';
 import 'service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'kegiatan/tambahKegiatan.dart';
+import 'kegiatan/editKegiatan.dart';
 
 class CareRythmApp extends StatelessWidget {
+  const CareRythmApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -19,11 +24,17 @@ class CareRythmApp extends StatelessWidget {
       ),
       home: LoginPage(),
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/tambah': (context) => const TambahKegiatan(),
+        '/edit': (context) => const EditKegiatan(),
+      },
     );
   }
 }
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -40,19 +51,26 @@ class _LoginPageState extends State<LoginPage> {
 
     final String email = emailController.text;
     final String password = passwordController.text;
-    // Gunakan AuthApi untuk login ke REST API
     final authApi = AuthApi(
-      baseUrl: 'http://127.0.0.1:8000/api', // Ganti dengan URL API Anda
+      baseUrl: 'http://127.0.0.1:8000/api',
     );
 
     try {
       final response = await authApi.login(email, password);
       if (response.statusCode == 200) {
-        // Login sukses, lanjut ke HomePage
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage(email: email)),
-        );
+        // Cek token di SharedPreferences sebelum lanjut
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('token');
+        if (token != null && token.isNotEmpty) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage(email: email)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login gagal. Token tidak ditemukan.')),
+          );
+        }
       } else {
         // Login gagal, tampilkan pesan error
         ScaffoldMessenger.of(context).showSnackBar(

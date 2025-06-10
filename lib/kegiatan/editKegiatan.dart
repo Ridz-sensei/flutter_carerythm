@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/kegiatan.dart';
 import '../service/kegiatan_service.dart';
 
 class EditKegiatan extends StatefulWidget {
@@ -17,18 +18,23 @@ class _EditKegiatanState extends State<EditKegiatan> {
   late TimeOfDay _waktuMulai;
   late TimeOfDay _waktuSelesai;
   bool _isLoading = false;
-  late Map<String, dynamic> kegiatan;
+  late Kegiatan kegiatan;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    kegiatan = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    _namaController = TextEditingController(text: kegiatan['kegiatan'] ?? '');
-    _catatanController = TextEditingController(text: kegiatan['catatan'] ?? '');
-    _tempatController = TextEditingController(text: kegiatan['tempat'] ?? '');
-    _tanggal = DateTime.parse(kegiatan['tanggal']);
-    _waktuMulai = _parseTime(kegiatan['waktu_mulai']);
-    _waktuSelesai = _parseTime(kegiatan['waktu_selesai']);
+    final args = ModalRoute.of(context)!.settings.arguments;
+    if (args is Map<String, dynamic>) {
+      kegiatan = Kegiatan.fromJson(args);
+    } else {
+      throw Exception('Argumen tidak valid untuk EditKegiatan');
+    }
+    _namaController = TextEditingController(text: kegiatan.kegiatan);
+    _catatanController = TextEditingController(text: kegiatan.catatan ?? '');
+    _tempatController = TextEditingController(text: kegiatan.tempat ?? '');
+    _tanggal = DateTime.parse(kegiatan.tanggal);
+    _waktuMulai = _parseTime(kegiatan.waktuMulai);
+    _waktuSelesai = _parseTime(kegiatan.waktuSelesai);
   }
 
   TimeOfDay _parseTime(String time) {
@@ -43,30 +49,35 @@ class _EditKegiatanState extends State<EditKegiatan> {
     setState(() {
       _isLoading = true;
     });
-    final updated = {
-      'id': kegiatan['id'],
-      'kegiatan': _namaController.text,
-      'catatan': _catatanController.text,
-      'tanggal': "${_tanggal.year.toString().padLeft(4, '0')}-${_tanggal.month.toString().padLeft(2, '0')}-${_tanggal.day.toString().padLeft(2, '0')}",
-      'waktu_mulai': "${_waktuMulai.hour.toString().padLeft(2, '0')}:${_waktuMulai.minute.toString().padLeft(2, '0')}",
-      'waktu_selesai': "${_waktuSelesai.hour.toString().padLeft(2, '0')}:${_waktuSelesai.minute.toString().padLeft(2, '0')}",
-      'tempat': _tempatController.text.isEmpty ? null : _tempatController.text,
-    };
-    final success = await ApiService.updateKegiatan(updated);
-    setState(() {
-      _isLoading = false;
-    });
-    if (success) {
-      if (mounted) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kegiatan berhasil diupdate')),
-        );
+    final updated = Kegiatan(
+      id: kegiatan.id,
+      kegiatan: _namaController.text,
+      catatan: _catatanController.text,
+      tanggal: "${_tanggal.year.toString().padLeft(4, '0')}-${_tanggal.month.toString().padLeft(2, '0')}-${_tanggal.day.toString().padLeft(2, '0')}",
+      waktuMulai: "${_waktuMulai.hour.toString().padLeft(2, '0')}:${_waktuMulai.minute.toString().padLeft(2, '0')}",
+      waktuSelesai: "${_waktuSelesai.hour.toString().padLeft(2, '0')}:${_waktuSelesai.minute.toString().padLeft(2, '0')}",
+      tempat: _tempatController.text.isEmpty ? null : _tempatController.text,
+    );
+    try {
+      final success = await ApiService.updateKegiatan(updated.toJson()..['id'] = updated.id);
+      setState(() {
+        _isLoading = false;
+      });
+      if (success) {
+        if (mounted) {
+          Navigator.pop(context, true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Kegiatan berhasil diupdate')),
+          );
+        }
       }
-    } else {
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal update kegiatan')),
+          SnackBar(content: Text('Gagal update kegiatan: $e')),
         );
       }
     }
@@ -75,6 +86,7 @@ class _EditKegiatanState extends State<EditKegiatan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Hilangkan AppBar agar lebih mirip desain tambah kegiatan
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -84,7 +96,7 @@ class _EditKegiatanState extends State<EditKegiatan> {
             end: Alignment.bottomCenter,
             colors: [
               Colors.white,
-              Color.fromRGBO(138, 43, 226, 0.5),
+              Color.fromRGBO(138, 43, 226, 0.5), // ungu transparan
             ],
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../service/kegiatan_service.dart';
+import '../models/kegiatan.dart';
 
 class PageKegiatan extends StatefulWidget {
   const PageKegiatan({super.key});
@@ -9,7 +10,7 @@ class PageKegiatan extends StatefulWidget {
 }
 
 class _PageKegiatanState extends State<PageKegiatan> {
-  late Future<List<dynamic>> _futureKegiatan;
+  late Future<List<Kegiatan>> _futureKegiatan;
 
   @override
   void initState() {
@@ -26,7 +27,17 @@ class _PageKegiatanState extends State<PageKegiatan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Hilangkan AppBar, gunakan background gradient
+      appBar: AppBar(
+        title: const Text('Kegiatan'),
+        backgroundColor: Colors.deepPurple,
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refresh,
+          ),
+        ],
+      ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -60,21 +71,29 @@ class _PageKegiatanState extends State<PageKegiatan> {
                   onPressed: () async {
                     final result = await Navigator.pushNamed(context, '/tambah');
                     if (result == true) {
-                      _refresh();
+                      await _refresh(); // pastikan refresh setelah tambah
                     }
                   },
                 ),
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: FutureBuilder<List<dynamic>>(
+                child: FutureBuilder<List<Kegiatan>>(
                   future: _futureKegiatan,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (snapshot.hasError) {
-                      return Center(child: Text('Gagal memuat data'));
+                      // Tampilkan pesan error detail
+                      return Center(
+                        child: SingleChildScrollView(
+                          child: Text(
+                            'Gagal memuat data:\n${snapshot.error}',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
                     }
                     final kegiatanList = snapshot.data ?? [];
                     if (kegiatanList.isEmpty) {
@@ -100,17 +119,17 @@ class _PageKegiatanState extends State<PageKegiatan> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      kegiatan['kegiatan'] ?? '',
+                                      kegiatan.kegiatan,
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    Text('Catatan: ${kegiatan['catatan'] ?? "-"}'),
-                                    Text('Tanggal: ${kegiatan['tanggal'] ?? ""}'),
-                                    Text('Waktu: ${kegiatan['waktu_mulai'] ?? ""} - ${kegiatan['waktu_selesai'] ?? ""}'),
-                                    Text('Tempat: ${kegiatan['tempat'] ?? "-"}'),
+                                    Text('Catatan: ${kegiatan.catatan ?? "-"}'),
+                                    Text('Tanggal: ${kegiatan.tanggal}'),
+                                    Text('Waktu: ${kegiatan.waktuMulai} - ${kegiatan.waktuSelesai}'),
+                                    Text('Tempat: ${kegiatan.tempat ?? "-"}'),
                                     const SizedBox(height: 10),
                                     Row(
                                       children: [
@@ -119,10 +138,10 @@ class _PageKegiatanState extends State<PageKegiatan> {
                                             final result = await Navigator.pushNamed(
                                               context,
                                               '/edit',
-                                              arguments: kegiatan,
+                                              arguments: kegiatan.toJson(),
                                             );
                                             if (result == true) {
-                                              _refresh();
+                                              await _refresh();
                                             }
                                           },
                                           style: ElevatedButton.styleFrom(
@@ -159,7 +178,7 @@ class _PageKegiatanState extends State<PageKegiatan> {
                                               },
                                             );
                                             if (confirm == true) {
-                                              final success = await ApiService.deleteKegiatan(kegiatan['id']);
+                                              final success = await ApiService.deleteKegiatan(kegiatan.id);
                                               if (success) {
                                                 if (mounted) {
                                                   ScaffoldMessenger.of(context).showSnackBar(
