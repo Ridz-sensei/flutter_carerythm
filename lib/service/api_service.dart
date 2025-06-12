@@ -19,9 +19,9 @@ class AuthApi {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      print('Response login: $data'); // Debug: print seluruh response
+      print('Response login: $data'); 
 
-      // Coba beberapa kemungkinan lokasi token
+    
       String? token;
       if (data['token'] != null) {
         token = data['token'];
@@ -34,7 +34,7 @@ class AuthApi {
       } else if (data['data'] != null && data['data']['user'] != null && data['data']['user']['token'] != null) {
         token = data['data']['user']['token'];
       }
-      print('Token yang ditemukan: $token'); // Debug: print token yang ditemukan
+      print('Token yang ditemukan: $token');
 
       // Simpan token ke SharedPreferences (seperti di tambah jadwal)
       if (token != null) {
@@ -46,7 +46,7 @@ class AuthApi {
       }
     } else {
       print('Login gagal dengan status: ${response.statusCode}');
-      print('Response body: ${response.body}'); // Debug: print response error
+      print('Response body: ${response.body}'); 
     }
     return response;
   }

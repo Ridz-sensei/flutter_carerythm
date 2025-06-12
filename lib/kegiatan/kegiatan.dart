@@ -71,7 +71,7 @@ class _PageKegiatanState extends State<PageKegiatan> {
                   onPressed: () async {
                     final result = await Navigator.pushNamed(context, '/tambah');
                     if (result == true) {
-                      await _refresh(); // pastikan refresh setelah tambah
+                      await _refresh(); //refresh setelah tambah
                     }
                   },
                 ),

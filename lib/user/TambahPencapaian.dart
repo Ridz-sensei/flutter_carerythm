@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../models/pencapaian.dart';
+import '../service/pencapaian_service.dart';
 
 class AddPencapaianPage extends StatefulWidget {
-  const AddPencapaianPage({super.key});
+  final String token;
+  const AddPencapaianPage({super.key, required this.token});
 
   @override
   State<AddPencapaianPage> createState() => _AddPencapaianPageState();
@@ -10,10 +13,11 @@ class AddPencapaianPage extends StatefulWidget {
 class _AddPencapaianPageState extends State<AddPencapaianPage> {
   final TextEditingController namaController = TextEditingController();
   final TextEditingController jumlahController = TextEditingController();
-  DateTime? tanggalMulai;
-  DateTime? tanggalSelesai;
+  final TextEditingController targetController = TextEditingController();
+  final TextEditingController kategoriController = TextEditingController();
+  DateTime? waktuPencapaian;
 
-  Future<void> pilihTanggal(BuildContext context, bool mulai) async {
+  Future<void> pilihTanggal(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -22,11 +26,7 @@ class _AddPencapaianPageState extends State<AddPencapaianPage> {
     );
     if (picked != null) {
       setState(() {
-        if (mulai) {
-          tanggalMulai = picked;
-        } else {
-          tanggalSelesai = picked;
-        }
+        waktuPencapaian = picked;
       });
     }
   }
@@ -42,7 +42,6 @@ class _AddPencapaianPageState extends State<AddPencapaianPage> {
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-
             const Text("Nama Kegiatan", style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 5),
             TextField(
@@ -52,9 +51,7 @@ class _AddPencapaianPageState extends State<AddPencapaianPage> {
                 hintText: "Contoh: Menyelesaikan Modul 1",
               ),
             ),
-
             const SizedBox(height: 20),
-
             const Text("Jumlah", style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 5),
             TextField(
@@ -65,41 +62,42 @@ class _AddPencapaianPageState extends State<AddPencapaianPage> {
                 hintText: "Contoh: 5",
               ),
             ),
-
             const SizedBox(height: 20),
-
-            const Text("Tanggal Mulai", style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text("Target", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 5),
+            TextField(
+              controller: targetController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: "Contoh: 10",
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text("Kategori", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 5),
+            TextField(
+              controller: kategoriController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: "Contoh: Pelajaran",
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text("Tanggal Pencapaian", style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 5),
             ListTile(
               tileColor: Colors.grey[200],
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               title: Text(
-                tanggalMulai != null
-                  ? "${tanggalMulai!.day}/${tanggalMulai!.month}/${tanggalMulai!.year}"
-                  : "Pilih Tanggal Mulai",
+                waktuPencapaian != null
+                  ? "${waktuPencapaian!.day}/${waktuPencapaian!.month}/${waktuPencapaian!.year}"
+                  : "Pilih Tanggal",
               ),
               trailing: const Icon(Icons.calendar_today),
-              onTap: () => pilihTanggal(context, true),
+              onTap: () => pilihTanggal(context),
             ),
-
-            const SizedBox(height: 15),
-
-            const Text("Tanggal Selesai", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 5),
-            ListTile(
-              tileColor: Colors.grey[200],
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              title: Text(
-                tanggalSelesai != null
-                  ? "${tanggalSelesai!.day}/${tanggalSelesai!.month}/${tanggalSelesai!.year}"
-                  : "Pilih Tanggal Selesai",
-              ),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: () => pilihTanggal(context, false),
-            ),
-
             const SizedBox(height: 40),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -115,9 +113,32 @@ class _AddPencapaianPageState extends State<AddPencapaianPage> {
                   child: const Text("Batal", style: TextStyle(color: Colors.white),),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     String nama = namaController.text;
                     String jumlah = jumlahController.text;
+                    String target = targetController.text;
+                    String kategori = kategoriController.text;
+                    if (nama.isEmpty || jumlah.isEmpty || target.isEmpty || waktuPencapaian == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Semua field harus diisi!')),
+                      );
+                      return;
+                    }
+                    final pencapaian = Pencapaian(
+                      nama: nama,
+                      jumlah: int.tryParse(jumlah) ?? 0,
+                      target: int.tryParse(target) ?? 0,
+                      kategori: kategori.isNotEmpty ? kategori : null,
+                      waktuPencapaian: "${waktuPencapaian!.year}-${waktuPencapaian!.month.toString().padLeft(2, '0')}-${waktuPencapaian!.day.toString().padLeft(2, '0')}",
+                    );
+                    bool success = await PencapaianService.tambahPencapaian(pencapaian, widget.token);
+                    if (success) {
+                      Navigator.pop(context, true);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Gagal menambah pencapaian')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,

@@ -129,7 +129,8 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Pencapaian()),
+                    // Ganti dengan token user yang valid jika sudah ada autentikasi
+                    MaterialPageRoute(builder: (context) => HalamanPencapaian(token: 'DUMMY_TOKEN')),
                   );
                 },
                 child: const Text("Pencapaian"),
