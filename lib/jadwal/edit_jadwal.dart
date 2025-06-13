@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
 import '../service/jadwal_service.dart';
-import 'dart:convert';
 
-// Halaman Tambah Jadwal
-class TambahJadwalPage extends StatefulWidget {
-  const TambahJadwalPage({super.key});
+// Halaman Edit Jadwal
+class EditJadwalPage extends StatefulWidget {
+  final int jadwalId;
+  final Map<String, dynamic> jadwalData;
+  const EditJadwalPage({
+    super.key,
+    required this.jadwalId,
+    required this.jadwalData,
+  });
 
   @override
-  State<TambahJadwalPage> createState() => _TambahJadwalPageState();
+  State<EditJadwalPage> createState() => _EditJadwalPageState();
 }
 
-class _TambahJadwalPageState extends State<TambahJadwalPage> {
+class _EditJadwalPageState extends State<EditJadwalPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _namaController = TextEditingController();
-  final TextEditingController _deskripsiController = TextEditingController();
+  late TextEditingController _namaController;
+  late TextEditingController _catatanController;
+  String? _kategoriTerpilih;
+  List<String> _hariTerpilih = [];
+  TimeOfDay? _waktuMulai;
+  TimeOfDay? _waktuSelesai;
 
   final List<String> _kategoriList = [
     'Pelajaran',
@@ -28,19 +37,45 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
     'Kamis',
     'Jumat',
     'Sabtu',
-    'Minggu',
+    'Minggu'
   ];
-  final List<String> _hariTerpilih = [];
 
-  String? _kategoriTerpilih;
-  TimeOfDay? _waktuMulai;
-  TimeOfDay? _waktuSelesai;
-  bool _isLoading = false;
+  @override
+  void initState() {
+    super.initState();
+    _namaController = TextEditingController(
+      text: widget.jadwalData['nama_jadwal'] ?? widget.jadwalData['nama'] ?? '',
+    );
+    _catatanController = TextEditingController(
+      text: widget.jadwalData['catatan'] ?? widget.jadwalData['deskripsi'] ?? '',
+    );
+    _kategoriTerpilih = widget.jadwalData['kategori'];
+    final hariRaw = widget.jadwalData['hari'];
+    if (hariRaw is List) {
+      _hariTerpilih = List<String>.from(hariRaw);
+    } else if (hariRaw is String) {
+      _hariTerpilih = hariRaw.split(',').map((e) => e.trim()).toList();
+    }
+    _waktuMulai = _parseTime(widget.jadwalData['waktu_mulai']);
+    _waktuSelesai = _parseTime(widget.jadwalData['waktu_selesai']);
+  }
+
+  TimeOfDay? _parseTime(dynamic time) {
+    if (time == null || time.toString().isEmpty) return null;
+    final parts = time.toString().split(':');
+    if (parts.length < 2) return null;
+    return TimeOfDay(
+      hour: int.tryParse(parts[0]) ?? 0,
+      minute: int.tryParse(parts[1]) ?? 0,
+    );
+  }
 
   Future<void> _pilihWaktu(BuildContext context, bool isMulai) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: isMulai
+          ? (_waktuMulai ?? TimeOfDay.now())
+          : (_waktuSelesai ?? TimeOfDay.now()),
     );
     if (picked != null) {
       setState(() {
@@ -53,77 +88,45 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
     }
   }
 
-  Future<void> _simpanJadwal() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> _updateJadwal() async {
     if (!_formKey.currentState!.validate() ||
         _kategoriTerpilih == null ||
         _waktuMulai == null ||
         _waktuSelesai == null ||
         _hariTerpilih.isEmpty) {
-      setState(() {
-        _isLoading = false;
-      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Semua field wajib diisi!')),
       );
       return;
     }
-
-    final jadwal = {
+    final data = {
       'nama_jadwal': _namaController.text,
       'kategori': _kategoriTerpilih,
       'waktu_mulai': "${_waktuMulai!.hour.toString().padLeft(2, '0')}:${_waktuMulai!.minute.toString().padLeft(2, '0')}",
       'waktu_selesai': "${_waktuSelesai!.hour.toString().padLeft(2, '0')}:${_waktuSelesai!.minute.toString().padLeft(2, '0')}",
-      'hari': List<String>.from(_hariTerpilih), // pastikan array of string
-      'catatan': _deskripsiController.text.isEmpty ? null : _deskripsiController.text,
+      'hari': List<String>.from(_hariTerpilih),
+      'catatan': _catatanController.text,
     };
-    print('Data dikirim ke backend: $jadwal');
     try {
-      final success = await JadwalService.addJadwal(jadwal);
-      setState(() {
-        _isLoading = false;
-      });
+      final success = await JadwalService.updateJadwal(widget.jadwalId, data);
       if (success) {
-        if (mounted) {
-          Navigator.pop(context, true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Jadwal berhasil ditambahkan')),
-          );
-        }
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      String errorMsg = 'Gagal menambah jadwal: $e';
-      try {
-        final err = e.toString();
-        final jsonStart = err.indexOf('{');
-        if (jsonStart != -1) {
-          final jsonStr = err.substring(jsonStart);
-          final decoded = jsonDecode(jsonStr);
-          if (decoded is Map && decoded['message'] != null) {
-            errorMsg = decoded['message'].toString();
-          }
-        }
-      } catch (_) {}
-      if (mounted) {
+        Navigator.pop(context, true);
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg)),
+          const SnackBar(content: Text('Gagal update jadwal')),
         );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan koneksi: $e')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Tambah Jadwal"),
-        backgroundColor: const Color(0xFF7A3CFF),
-      ),
+      appBar: AppBar(title: const Text('Edit Jadwal'), backgroundColor: const Color(0xFF7A3CFF)),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -145,10 +148,10 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
                   labelText: 'Kategori',
                   border: OutlineInputBorder(),
                 ),
+                value: _kategoriTerpilih,
                 items: _kategoriList
                     .map((k) => DropdownMenuItem(value: k, child: Text(k)))
                     .toList(),
-                value: _kategoriTerpilih,
                 onChanged: (value) {
                   setState(() {
                     _kategoriTerpilih = value;
@@ -158,7 +161,7 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _deskripsiController,
+                controller: _catatanController,
                 maxLines: 3,
                 decoration: const InputDecoration(
                   labelText: 'Catatan',
@@ -215,24 +218,12 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () {
-                        if (_formKey.currentState!.validate()) {
-                          _simpanJadwal();
-                        }
-                      },
+                onPressed: _updateJadwal,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7A3CFF),
                   foregroundColor: Colors.white,
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text("Simpan"),
+                child: const Text("Simpan Perubahan"),
               ),
             ],
           ),

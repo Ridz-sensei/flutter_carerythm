@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import '../daftar/HalamanDaftar.dart';
-import 'HalamanUtama.dart';
-
-void main() {
-  runApp(CareRythmApp());
-}
+import 'Daftar.dart';
+import 'homepage.dart';
+import 'service/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'kegiatan/tambahKegiatan.dart';
+import 'kegiatan/editKegiatan.dart';
+import 'jadwal/jadwal_page.dart';
+import 'jadwal/tambah_jadwal_page.dart';
 
 class CareRythmApp extends StatelessWidget {
+  const CareRythmApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,13 +26,71 @@ class CareRythmApp extends StatelessWidget {
       ),
       home: LoginPage(),
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/tambah': (context) => const TambahKegiatan(),
+        '/edit': (context) => const EditKegiatan(),
+        '/jadwal': (context) => const JadwalPage(),
+        '/tambahjadwal': (context) => const TambahJadwalPage(),
+      },
     );
   }
 }
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
+
+  Future<void> _login(BuildContext context) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final String email = emailController.text;
+    final String password = passwordController.text;
+    final authApi = AuthApi(
+      baseUrl: 'http://127.0.0.1:8000/api',
+    );
+
+    try {
+      final response = await authApi.login(email, password);
+      if (response.statusCode == 200) {
+        // Cek token di SharedPreferences sebelum lanjut
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('token');
+        if (token != null && token.isNotEmpty) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage(email: email)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login gagal. Token tidak ditemukan.')),
+          );
+        }
+      } else {
+        // Login gagal, tampilkan pesan error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login gagal. Email atau password salah.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan. Silakan coba lagi.')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,16 +121,7 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 30),
               ElevatedButton(
-                onPressed: () {
-                  final String email = emailController.text;
-                  final String password = passwordController.text;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomePage(email: email),
-                    ),
-                  );
-                },
+                onPressed: isLoading ? null : () => _login(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
                   minimumSize: Size(double.infinity, 50),
@@ -76,10 +129,13 @@ class LoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Text(
-                  'Masuk',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                child:
+                    isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                          'Masuk',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
               ),
               const SizedBox(height: 20),
               TextButton(

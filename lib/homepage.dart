@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../jadwal/jadwal_page.dart';
-import '../user/profil_page.dart';
-import '../user/teman_list_page.dart';
-import '../pencapaian/HalamanPencapaian.dart';
-import '../kegiatan/Kegiatan.dart';
-import '../kegiatan/tambahKegiatan.dart';
+import 'jadwal/jadwal_page.dart';
+import 'user/profil_page.dart';
+import 'user/teman_list_page.dart';
+import 'pencapaian/HalamanPencapaian.dart';
+import 'kegiatan/Kegiatan.dart';
+import 'kegiatan/tambahKegiatan.dart';
+import 'service/api_service.dart';
+import 'dart:convert';
 
 class HomePage extends StatefulWidget {
   final String email;
@@ -15,9 +17,39 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final String username = 'Argantara';
+  String username = '';
   int count = 0;
   int count1 = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsername();
+  }
+
+  Future<void> fetchUsername() async {
+    final api = AuthApi(baseUrl: 'http://127.0.0.1:8000/api');
+    try {
+      final response = await api.getUser(widget.email);
+      if (response.statusCode == 200) {
+        final data = response.body;
+        // Ambil username dari response JSON: {"username": "...", ...}
+        final json = data.isNotEmpty ? jsonDecode(data) : {};
+        final name = json['username'] ?? '';
+        setState(() {
+          username = name;
+        });
+      } else {
+        setState(() {
+          username = 'User';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        username = 'User';
+      });
+    }
+  }
 
   void tambah() {
     setState(() {
@@ -97,7 +129,8 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Pencapaian()),
+                    // Ganti dengan token user yang valid jika sudah ada autentikasi
+                    MaterialPageRoute(builder: (context) => HalamanPencapaian(token: 'DUMMY_TOKEN')),
                   );
                 },
                 child: const Text("Pencapaian"),
@@ -179,7 +212,7 @@ class _HomePageState extends State<HomePage> {
                       Row(
                         children: [
                           Text(
-                            '${widget.email}',
+                            widget.email,
                             style: TextStyle(fontSize: 10, color: Colors.white),
                           ),
                         ],
@@ -193,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$username',
+                          username,
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
@@ -250,7 +283,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   const SizedBox(width: 20),
-                  Container(
+                  SizedBox(
                     width: 150,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -311,7 +344,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   const SizedBox(width: 20),
-                  Container(
+                  SizedBox(
                     width: 150,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -372,7 +405,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   const SizedBox(width: 20),
-                  Container(
+                  SizedBox(
                     width: 150,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

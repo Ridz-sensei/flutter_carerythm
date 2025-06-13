@@ -27,7 +27,10 @@ class ProfilPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                     elevation: 6,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ),
@@ -67,42 +70,53 @@ class ProfilPage extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: const [
-                                Text("Argantara",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    )),
+                                Text(
+                                  "Argantara",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
                                 SizedBox(height: 4),
-                                Text("Argantara@gmail.com",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black54,
-                                    )),
+                                Text(
+                                  "Argantara@gmail.com",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black54,
+                                  ),
+                                ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
                     Container(
                       width: double.infinity,
                       color: const Color(0xFFF3E9FC),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Profil",
-                              style: TextStyle(
-                                color: Color(0xFFC08DE8),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              )),
+                          const Text(
+                            "Profil",
+                            style: TextStyle(
+                              color: Color(0xFFC08DE8),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           InkWell(
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const EditProfilPage()),
+                                MaterialPageRoute(
+                                  builder: (context) => const EditProfilPage(),
+                                ),
                               );
                             },
                             child: const Text(
@@ -125,27 +139,38 @@ class ProfilPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 16),
-                          Text("Tentang", style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          )),
+                          Text(
+                            "Tentang",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
                           SizedBox(height: 4),
-                          Text("Saya biasa dipanggil Arga, mari kita akrab dan berjuang bersama."),
+                          Text(
+                            "Saya biasa dipanggil Arga, mari kita akrab dan berjuang bersama.",
+                          ),
                           SizedBox(height: 12),
-                          Text("Bergabung: 11/11/2023",
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            "Bergabung: 11/11/2023",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           SizedBox(height: 4),
-                          Text("Total Masuk: 16",
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            "Total Masuk: 16",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           SizedBox(height: 4),
-                          Text("Terakhir Masuk: 14/04/2024",
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            "Terakhir Masuk: 14/04/2024",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),

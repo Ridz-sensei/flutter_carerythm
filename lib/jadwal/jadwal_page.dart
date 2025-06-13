@@ -1,49 +1,33 @@
 import 'package:flutter/material.dart';
-import 'edit_jadwal_page.dart';
-import 'tambah_jadwal_page.dart';
+import '../service/jadwal_service.dart';
+import '../models/jadwal.dart';
+import 'edit_jadwal.dart'; // pastikan ini sesuai dengan file edit jadwal yang benar
 
 // Halaman utama untuk menampilkan daftar jadwal
-class JadwalPage extends StatelessWidget {
+class JadwalPage extends StatefulWidget {
   const JadwalPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Data jadwal 
-    List<Map<String, String>> jadwal = [
-      {
-        'nama': 'Belajar Flutter',
-        'hari': 'Senin',
-        'waktuMulai': '08:00',
-        'waktuSelesai': '10:00',
-        'kategori': 'Membaca',
-        'deskripsi': 'Fokus membuat tampilan Flutter',
-      },
-      {
-        'nama': 'Meeting Tim',
-        'hari': 'Selasa',
-        'waktuMulai': '10:00',
-        'waktuSelesai': '12:00',
-        'kategori': 'Diskusi',
-        'deskripsi': 'Membahas proyek dan update tugas',
-      },
-      {
-        'nama': 'Olahraga',
-        'hari': 'Rabu',
-        'waktuMulai': '07:00',
-        'waktuSelesai': '08:00',
-        'kategori': 'Kesehatan',
-        'deskripsi': 'Jogging di taman sekitar rumah',
-      },
-      {
-        'nama': 'Belajar Bahasa Inggris',
-        'hari': 'Kamis',
-        'waktuMulai': '09:00',
-        'waktuSelesai': '11:00',
-        'kategori': 'Belajar',
-        'deskripsi': 'Mempelajari grammar dan vocabulary',
-      },
-    ];
+  State<JadwalPage> createState() => _JadwalPageState();
+}
 
+class _JadwalPageState extends State<JadwalPage> {
+  late Future<List<Jadwal>> _futureJadwal;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureJadwal = JadwalService.fetchJadwalList();
+  }
+
+  Future<void> _refresh() async {
+    setState(() {
+      _futureJadwal = JadwalService.fetchJadwalList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Care Rhythm - Jadwal"),
@@ -65,18 +49,17 @@ class JadwalPage extends StatelessWidget {
                 // Dropdown untuk memilih hari (belum difungsikan)
                 DropdownButton<String>(
                   hint: const Text("Pilih Hari"),
-                  items:
-                      const [
-                        'Senin',
-                        'Selasa',
-                        'Rabu',
-                        'Kamis',
-                        'Jumat',
-                        'Sabtu',
-                        'Minggu',
-                      ].map((hari) {
-                        return DropdownMenuItem(value: hari, child: Text(hari));
-                      }).toList(),
+                  items: const [
+                    'Senin',
+                    'Selasa',
+                    'Rabu',
+                    'Kamis',
+                    'Jumat',
+                    'Sabtu',
+                    'Minggu',
+                  ].map((hari) {
+                    return DropdownMenuItem(value: hari, child: Text(hari));
+                  }).toList(),
                   onChanged: (_) {}, // Tidak ada aksi saat hari dipilih
                 ),
                 const Spacer(), // Mendorong tombol ke kanan
@@ -85,13 +68,14 @@ class JadwalPage extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF7A3CFF),
                   ),
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    final result = await Navigator.pushNamed(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const TambahJadwalPage(),
-                      ),
+                      '/tambahjadwal',
                     );
+                    if (result == true) {
+                      _refresh();
+                    }
                   },
                   icon: const Icon(Icons.add),
                   label: const Text("Tambah Jadwal"),
@@ -101,71 +85,107 @@ class JadwalPage extends StatelessWidget {
             const SizedBox(height: 16), // Spasi antar elemen
             // ListView untuk menampilkan semua jadwal
             Expanded(
-              child: ListView.builder(
-                itemCount: jadwal.length,
-                itemBuilder: (context, index) {
-                  var data = jadwal[index];
-                  return Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Informasi detail kegiatan
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+              child: FutureBuilder<List<Jadwal>>(
+                future: _futureJadwal,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: SingleChildScrollView(
+                        child: Text(
+                          'Gagal memuat data:\n${snapshot.error}',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  }
+                  final jadwalList = snapshot.data ?? [];
+                  if (jadwalList.isEmpty) {
+                    return const Center(child: Text('Belum ada jadwal'));
+                  }
+                  return RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: ListView.builder(
+                      itemCount: jadwalList.length,
+                      itemBuilder: (context, index) {
+                        final jadwal = jadwalList[index];
+                        return Card(
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text(
-                                  data['hari']!,
-                                  style: const TextStyle(
-                                    color: Color(0xFF7A3CFF),
-                                    fontWeight: FontWeight.w600,
+                                // Informasi detail kegiatan
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        (jadwal.hari.isNotEmpty ? jadwal.hari.join(', ') : '-'),
+                                        style: const TextStyle(
+                                          color: Color(0xFF7A3CFF),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        jadwal.namaJadwal,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        "Kategori: ${jadwal.kategori}",
+                                        style: const TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                      Text(
+                                        "Deskripsi: ${jadwal.catatan ?? ''}",
+                                      ),
+                                      Text(
+                                        "${jadwal.waktuMulai} - ${jadwal.waktuSelesai}",
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  data['nama']!,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  "Kategori: ${data['kategori']}",
-                                  style: const TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                                Text("Deskripsi: ${data['deskripsi']}"),
-                                Text(
-                                  "${data['waktuMulai']} - ${data['waktuSelesai']}",
-                                  style: const TextStyle(color: Colors.grey),
+                                // Tombol untuk pindah ke halaman EditJadwalPage (hanya tampilan)
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  color: const Color(0xFF7A3CFF),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => EditJadwalPage(
+                                          jadwalId: jadwal.id,
+                                          jadwalData: jadwal.toJson(),
+                                        ),
+                                      ),
+                                    ).then((result) {
+                                      if (result == true) {
+                                        _refresh();
+                                      }
+                                    });
+                                  },
                                 ),
                               ],
                             ),
                           ),
-                          // Tombol untuk pindah ke halaman EditJadwalPage (hanya tampilan)
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            color: const Color(0xFF7A3CFF),
-                            onPressed: () {
-                              // Navigasi ke halaman EditJadwalPage (versi tampilan saja)
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const EditJadwalPage(),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   );
                 },

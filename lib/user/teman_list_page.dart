@@ -12,7 +12,7 @@ class TemanListPage extends StatelessWidget {
       "deskripsi": "Pengembang Flutter dan penggemar UI.",
       "bergabung": "Jan 2022",
       "totalMasuk": 120,
-      "terakhirMasuk": "10 Mei 2025"
+      "terakhirMasuk": "10 Mei 2025",
     },
     {
       "nama": "Daniel",
@@ -21,7 +21,7 @@ class TemanListPage extends StatelessWidget {
       "deskripsi": "Backend developer dan penyuka kopi.",
       "bergabung": "Mar 2021",
       "totalMasuk": 98,
-      "terakhirMasuk": "9 Mei 2025"
+      "terakhirMasuk": "9 Mei 2025",
     },
     {
       "nama": "Laura",
@@ -30,7 +30,7 @@ class TemanListPage extends StatelessWidget {
       "deskripsi": "UI/UX designer dan pecinta kucing.",
       "bergabung": "Feb 2023",
       "totalMasuk": 150,
-      "terakhirMasuk": "11 Mei 2025"
+      "terakhirMasuk": "11 Mei 2025",
     },
     {
       "nama": "Diana",
@@ -39,7 +39,7 @@ class TemanListPage extends StatelessWidget {
       "deskripsi": "Project manager dan traveler.",
       "bergabung": "Apr 2022",
       "totalMasuk": 200,
-      "terakhirMasuk": "8 Mei 2025"
+      "terakhirMasuk": "8 Mei 2025",
     },
   ];
 
@@ -49,7 +49,10 @@ class TemanListPage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFFC08DE8),
-        title: const Text("Daftar Teman", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Daftar Teman",
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: ListView.builder(
@@ -86,15 +89,16 @@ class TemanListPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProfilTemanPage(
-                      nama: teman["nama"],
-                      email: teman["email"],
-                      fotoUrl: teman["fotoUrl"],
-                      deskripsi: teman["deskripsi"],
-                      bergabung: teman["bergabung"],
-                      totalMasuk: teman["totalMasuk"],
-                      terakhirMasuk: teman["terakhirMasuk"],
-                    ),
+                    builder:
+                        (context) => ProfilTemanPage(
+                          nama: teman["nama"],
+                          email: teman["email"],
+                          fotoUrl: teman["fotoUrl"],
+                          deskripsi: teman["deskripsi"],
+                          bergabung: teman["bergabung"],
+                          totalMasuk: teman["totalMasuk"],
+                          terakhirMasuk: teman["terakhirMasuk"],
+                        ),
                   ),
                 );
               },
@@ -102,7 +106,11 @@ class TemanListPage extends StatelessWidget {
                 icon: const Icon(Icons.message, color: Colors.deepPurple),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Pesan ke ${teman["nama"]} belum didukung.')),
+                    SnackBar(
+                      content: Text(
+                        'Pesan ke ${teman["nama"]} belum didukung.',
+                      ),
+                    ),
                   );
                 },
               ),
