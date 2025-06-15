@@ -1,49 +1,77 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/pencapaian.dart';
 
 class PencapaianService {
-  static const String baseUrl = 'http://127.0.0.1:8000/api/pencapaian'; // GANTI sesuai lingkungan Anda
+  static const String baseUrl = 'http://127.0.0.1:8000/api/pencapaian';
+
+  static Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
 
   static Future<List<Pencapaian>> fetchPencapaian() async {
-    try {
-      final response = await http.get(Uri.parse(baseUrl));
-      if (response.statusCode == 200) {
-        final jsonBody = json.decode(response.body);
-        if (jsonBody['success'] == true && jsonBody['data'] != null) {
-          List data = jsonBody['data'];
-          return data.map((e) => Pencapaian.fromJson(e)).toList();
-        } else {
-          throw Exception('Format data tidak sesuai');
-        }
+    final token = await _getToken();
+    if (token == null || token.isEmpty) {
+      print('Token tidak ditemukan di SharedPreferences.');
+      throw Exception('Token tidak ditemukan. Silakan login ulang.');
+    }
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(response.body);
+      if (jsonBody['success'] == true && jsonBody['data'] != null) {
+        List data = jsonBody['data'];
+        return data.map((e) => Pencapaian.fromJson(e)).toList();
       } else {
-        throw Exception('Gagal memuat pencapaian: ${response.statusCode}');
+        throw Exception('Format data tidak sesuai');
       }
-    } catch (e) {
-      throw Exception('Tidak dapat terhubung ke server: $e\n'
-          'Pastikan:\n'
-          '- API berjalan dan dapat diakses dari device/emulator/web\n'
-          '- URL sudah benar\n'
-          '- Backend mengizinkan CORS (untuk Flutter web)');
+    } else {
+      throw Exception('Gagal memuat pencapaian: ${response.statusCode}');
     }
   }
 
-  static Future<bool> tambahPencapaian(Pencapaian pencapaian, String token) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/tambah'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(pencapaian.toJson()),
-      );
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return true;
+  static Future<bool> tambahPencapaian(Pencapaian pencapaian, String? token) async {
+    if (token == null || token.isEmpty) {
+      token = await _getToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('Token tidak ditemukan. Silakan login ulang.');
       }
-      return false;
-    } catch (e) {
-      return false;
+    }
+    final response = await http.post(
+      Uri.parse('$baseUrl/tambah'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'nama': pencapaian.nama,
+        'target': pencapaian.target,
+        'kategori': pencapaian.kategori,
+      }),
+    );
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final jsonBody = json.decode(response.body);
+      if (jsonBody['success'] == true || jsonBody['status'] == true) {
+        return true;
+      } else {
+        throw Exception('Gagal menambahkan pencapaian: ${jsonBody['message'] ?? 'Unknown error'}');
+      }
+    } else {
+      // Coba ambil pesan error dari backend jika ada
+      try {
+        final jsonBody = json.decode(response.body);
+        if (jsonBody is Map && jsonBody['message'] != null) {
+          throw Exception('Gagal menambahkan pencapaian: ${jsonBody['message']}');
+        }
+      } catch (_) {}
+      throw Exception('Gagal menambahkan pencapaian: ${response.statusCode}');
     }
   }
 }

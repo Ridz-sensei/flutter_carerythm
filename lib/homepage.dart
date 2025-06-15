@@ -7,6 +7,11 @@ import 'kegiatan/Kegiatan.dart';
 import 'kegiatan/tambahKegiatan.dart';
 import 'service/api_service.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../service/jadwal_service.dart';
+import '../models/jadwal.dart';
+import '../service/kegiatan_service.dart';
+import '../models/kegiatan.dart';
 
 class HomePage extends StatefulWidget {
   final String email;
@@ -20,35 +25,35 @@ class _HomePageState extends State<HomePage> {
   String username = '';
   int count = 0;
   int count1 = 0;
+  late Future<List<Jadwal>> _futureJadwal;
+  late Future<List<Kegiatan>> _futureKegiatan;
 
   @override
   void initState() {
     super.initState();
     fetchUsername();
+    _futureJadwal = JadwalService.fetchJadwalList();
+    _futureKegiatan = KegiatanService.fetchKegiatan();
   }
 
   Future<void> fetchUsername() async {
-    final api = AuthApi(baseUrl: 'http://127.0.0.1:8000/api');
-    try {
-      final response = await api.getUser(widget.email);
-      if (response.statusCode == 200) {
-        final data = response.body;
-        // Ambil username dari response JSON: {"username": "...", ...}
-        final json = data.isNotEmpty ? jsonDecode(data) : {};
-        final name = json['username'] ?? '';
-        setState(() {
-          username = name;
-        });
-      } else {
-        setState(() {
-          username = 'User';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        username = 'User';
-      });
-    }
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('username') ?? '';
+    setState(() {
+      username = name.isNotEmpty ? name : 'User';
+    });
+  }
+
+  Future<void> _refreshJadwal() async {
+    setState(() {
+      _futureJadwal = JadwalService.fetchJadwalList();
+    });
+  }
+
+  Future<void> _refreshKegiatan() async {
+    setState(() {
+      _futureKegiatan = KegiatanService.fetchKegiatan();
+    });
   }
 
   void tambah() {
@@ -157,18 +162,7 @@ class _HomePageState extends State<HomePage> {
     const double paddingdaftar = 5;
 
     return Scaffold(
-      body: Container(
-        // decoration: BoxDecoration(
-        //   gradient: LinearGradient(
-        //     begin: Alignment.topCenter,
-        //     end: Alignment.bottomCenter,
-        //     colors: [
-        //       Colors.white,
-        //       Colors.white,
-        //       Colors.deepPurple
-        //     ]
-        //   )
-        // ),
+      body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -240,282 +234,251 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-
-            // Kegiatan Terkini
-            Container(
-              // color: Colors.deepPurple,
-              // width: double.infinity,
-              padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Kegiatan Terkini:',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ],
-              ),
-            ),
-
-            // daftar kegiatan
-            Container(
-              height: 75,
-              margin: const EdgeInsets.only(left: 20, right: 20),
-              padding: const EdgeInsets.all(paddingdaftar),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(50, 104, 58, 183),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text(
-                        '10.30',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.deepPurple[400],
-                        ),
-                      ),
-                      Icon(Icons.school, color: Colors.deepPurple[400]),
-                    ],
-                  ),
-                  const SizedBox(width: 20),
-                  SizedBox(
-                    width: 150,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Kelas Bahasa Inggris',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.deepPurple[400],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple[100],
-                          foregroundColor: Colors.deepPurple[400],
-                        ),
-                        child: Text(
-                          'selesai',
-                          style: TextStyle(color: Colors.deepPurple[400]),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            Container(
-              height: 75,
-              margin: const EdgeInsets.only(left: 20, right: 20),
-              padding: const EdgeInsets.all(paddingdaftar),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(50, 104, 58, 183),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text(
-                        '12.30',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.deepPurple[400],
-                        ),
-                      ),
-                      Icon(Icons.school, color: Colors.deepPurple[400]),
-                    ],
-                  ),
-                  const SizedBox(width: 20),
-                  SizedBox(
-                    width: 150,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Kelas Agama',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.deepPurple[400],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple[100],
-                          foregroundColor: Colors.deepPurple[400],
-                        ),
-                        child: Text(
-                          'selesai',
-                          style: TextStyle(color: Colors.deepPurple[400]),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            Container(
-              height: 75,
-              margin: const EdgeInsets.only(left: 20, right: 20),
-              padding: const EdgeInsets.all(paddingdaftar),
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(50, 104, 58, 183),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text(
-                        '14.30',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.deepPurple[400],
-                        ),
-                      ),
-                      Icon(Icons.book_sharp, color: Colors.deepPurple[400]),
-                    ],
-                  ),
-                  const SizedBox(width: 20),
-                  SizedBox(
-                    width: 150,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Belajar Mandiri',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.deepPurple[400],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple[100],
-                          foregroundColor: Colors.deepPurple[400],
-                        ),
-                        child: Text(
-                          'selesai',
-                          style: TextStyle(color: Colors.deepPurple[400]),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            // pencapaianmu
-            Container(
-              padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text('Pencapaianmu:', style: TextStyle(color: Colors.black)),
-                ],
-              ),
-            ),
-            // daftar pencapaianmu
-            Container(
-              margin: const EdgeInsets.only(right: 20, left: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    onTap: tambah,
-                    child: Container(
-                      height: 125,
-                      width: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurple,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Expanded agar seluruh konten bisa discroll
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Ubah label menjadi "Jadwal Anda"
+                    Container(
+                      padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.fitness_center,
-                            size: 40,
-                            color: Colors.red,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text('$count', style: TextStyle(fontSize: 20)),
-                            ],
+                          Text(
+                            'Jadwal Anda:',
+                            style: TextStyle(color: Colors.black),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  GestureDetector(
-                    onTap: tambah1,
-                    child: Container(
-                      height: 125,
-                      width: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurple,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    FutureBuilder<List<Jadwal>>(
+                      future: _futureJadwal,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: SingleChildScrollView(
+                              child: Text(
+                                'Gagal memuat jadwal:\n${snapshot.error}',
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          );
+                        }
+                        final jadwalList = snapshot.data ?? [];
+                        if (jadwalList.isEmpty) {
+                          return const Center(child: Text('Belum ada jadwal'));
+                        }
+                        return Column(
+                          children: jadwalList.map((jadwal) {
+                            return Card(
+                              elevation: 2,
+                              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: ListTile(
+                                title: Text(jadwal.namaJadwal, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Hari: ${jadwal.hari.join(', ')}"),
+                                    Text("Jam: ${jadwal.waktuMulai} - ${jadwal.waktuSelesai}"),
+                                    if (jadwal.catatan != null && jadwal.catatan!.isNotEmpty)
+                                      Text("Catatan: ${jadwal.catatan}"),
+                                  ],
+                                ),
+                                trailing: Icon(Icons.event_note, color: Colors.deepPurple),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Kegiatan Hari Ini
+                    Container(
+                      padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Icon(Icons.book, size: 40, color: Colors.amber),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text('$count1', style: TextStyle(fontSize: 20)),
-                            ],
+                          Text(
+                            'Kegiatan Hari Ini:',
+                            style: TextStyle(color: Colors.black),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                    FutureBuilder<List<Kegiatan>>(
+                      future: _futureKegiatan,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: SingleChildScrollView(
+                              child: Text(
+                                'Gagal memuat kegiatan:\n${snapshot.error}',
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          );
+                        }
+                        final kegiatanList = snapshot.data ?? [];
+                        if (kegiatanList.isEmpty) {
+                          return const Center(child: Text('Tidak ada kegiatan hari ini'));
+                        }
+                        return Column(
+                          children: kegiatanList.map((kegiatan) {
+                            return Card(
+                              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                              child: ListTile(
+                                leading: Icon(Icons.event, color: Colors.deepPurple[400]),
+                                title: Text(kegiatan.kegiatan),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${kegiatan.waktuMulai} - ${kegiatan.waktuSelesai}'),
+                                    if (kegiatan.tanggal.isNotEmpty)
+                                      Text('Tanggal: ${kegiatan.tanggal}'),
+                                    if (kegiatan.tempat != null && kegiatan.tempat!.isNotEmpty)
+                                      Text('Tempat: ${kegiatan.tempat}'),
+                                    if (kegiatan.catatan != null && kegiatan.catatan!.isNotEmpty)
+                                      Text('Catatan: ${kegiatan.catatan}'),
+                                  ],
+                                ),
+                                trailing: ElevatedButton(
+                                  onPressed: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Konfirmasi'),
+                                        content: const Text('Tandai kegiatan ini selesai? Kegiatan akan dihapus dari database.'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context, false),
+                                            child: const Text('Batal'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context, true),
+                                            child: const Text('Selesai', style: TextStyle(color: Colors.red)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      final success = await KegiatanService.deleteKegiatan(kegiatan.id);
+                                      if (success) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Kegiatan Anda telah ditandai selesai')),
+                                          );
+                                          _refreshKegiatan();
+                                        }
+                                      } else {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Gagal menghapus kegiatan')),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple[100],
+                                    foregroundColor: Colors.deepPurple[400],
+                                  ),
+                                  child: Text('selesai', style: TextStyle(color: Colors.deepPurple[400])),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Pencapaianmu
+                    Container(
+                      padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text('Pencapaianmu:', style: TextStyle(color: Colors.black)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(right: 20, left: 20, bottom: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          GestureDetector(
+                            onTap: tambah,
+                            child: Container(
+                              height: 125,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                color: Colors.deepPurple,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Icon(
+                                    Icons.fitness_center,
+                                    size: 40,
+                                    color: Colors.red,
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text('$count', style: TextStyle(fontSize: 20)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: tambah1,
+                            child: Container(
+                              height: 125,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                color: Colors.deepPurple,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Icon(Icons.book, size: 40, color: Colors.amber),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text('$count1', style: TextStyle(fontSize: 20)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
-
       // Navbar bawah
       bottomNavigationBar: BottomAppBar(
         height: 60,

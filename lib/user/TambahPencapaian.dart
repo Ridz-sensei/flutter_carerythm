@@ -115,28 +115,35 @@ class _AddPencapaianPageState extends State<AddPencapaianPage> {
                 ElevatedButton(
                   onPressed: () async {
                     String nama = namaController.text;
-                    String jumlah = jumlahController.text;
                     String target = targetController.text;
                     String kategori = kategoriController.text;
-                    if (nama.isEmpty || jumlah.isEmpty || target.isEmpty || waktuPencapaian == null) {
+                    if (nama.isEmpty || target.isEmpty || kategori.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Semua field harus diisi!')),
+                        const SnackBar(content: Text('Nama, target, dan kategori wajib diisi!')),
                       );
                       return;
                     }
                     final pencapaian = Pencapaian(
                       nama: nama,
-                      jumlah: int.tryParse(jumlah) ?? 0,
+                      jumlah: 0, // jumlah selalu 0 saat tambah baru (backend handle)
                       target: int.tryParse(target) ?? 0,
-                      kategori: kategori.isNotEmpty ? kategori : null,
-                      waktuPencapaian: "${waktuPencapaian!.year}-${waktuPencapaian!.month.toString().padLeft(2, '0')}-${waktuPencapaian!.day.toString().padLeft(2, '0')}",
+                      kategori: kategori,
+                      waktuPencapaian: "", // backend handle waktu_pencapaian
                     );
-                    bool success = await PencapaianService.tambahPencapaian(pencapaian, widget.token);
-                    if (success) {
-                      Navigator.pop(context, true);
-                    } else {
+                    try {
+                      bool success = await PencapaianService.tambahPencapaian(pencapaian, widget.token);
+                      if (success) {
+                        if (mounted) {
+                          Navigator.pop(context, true);
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Gagal menambah pencapaian')),
+                        );
+                      }
+                    } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Gagal menambah pencapaian')),
+                        SnackBar(content: Text('Gagal menambah pencapaian: $e')),
                       );
                     }
                   },

@@ -76,7 +76,8 @@ class _TambahJadwalPageState extends State<TambahJadwalPage> {
       'kategori': _kategoriTerpilih,
       'waktu_mulai': "${_waktuMulai!.hour.toString().padLeft(2, '0')}:${_waktuMulai!.minute.toString().padLeft(2, '0')}",
       'waktu_selesai': "${_waktuSelesai!.hour.toString().padLeft(2, '0')}:${_waktuSelesai!.minute.toString().padLeft(2, '0')}",
-      'hari': List<String>.from(_hariTerpilih), // pastikan array of string
+      // Kirim hari sebagai array agar validasi backend tidak error
+      'hari': List<String>.from(_hariTerpilih),
       'catatan': _deskripsiController.text.isEmpty ? null : _deskripsiController.text,
     };
     print('Data dikirim ke backend: $jadwal');

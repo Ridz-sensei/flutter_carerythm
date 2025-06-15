@@ -4,7 +4,7 @@ import '../service/pencapaian_service.dart';
 import '../user/TambahPencapaian.dart';
 
 class HalamanPencapaian extends StatefulWidget {
-  final String token; // Tambahkan token jika perlu autentikasi tambah
+  final String token;
   const HalamanPencapaian({super.key, required this.token});
 
   @override
@@ -72,7 +72,6 @@ class _HalamanPencapaianState extends State<HalamanPencapaian> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // ...bisa tambahkan summary/target progress di sini jika ingin...
             const SizedBox(height: 10),
             Expanded(
               child: _isLoading
@@ -109,7 +108,7 @@ class _HalamanPencapaianState extends State<HalamanPencapaian> {
                             ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
                   onPressed: _tambahPencapaian,
@@ -122,7 +121,6 @@ class _HalamanPencapaianState extends State<HalamanPencapaian> {
                     backgroundColor: Colors.deepPurple,
                   ),
                 ),
-                // Tombol hapus bisa ditambahkan sesuai kebutuhan
               ],
             ),
           ],

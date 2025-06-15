@@ -34,7 +34,7 @@ class _TambahKegiatanState extends State<TambahKegiatan> {
     };
     print('Data dikirim ke backend: $kegiatan');
     try {
-      final success = await ApiService.tambahKegiatan(kegiatan);
+      final success = await KegiatanService.tambahKegiatan(kegiatan);
       setState(() {
         _isLoading = false;
       });
@@ -252,3 +252,19 @@ class _TambahKegiatanState extends State<TambahKegiatan> {
     );
   }
 }
+
+// Jika Anda mendapatkan error seperti "Bad state: Could not find summary for library ..."
+// biasanya ini karena ada masalah pada import, build runner, atau cache Flutter.
+// Berikut beberapa langkah yang bisa Anda lakukan:
+
+// 1. Pastikan penamaan folder/file sudah benar dan konsisten (huruf besar/kecil).
+// 2. Pastikan tidak ada typo pada import di file lain, misal: 
+//    import 'kegiatan/tambahKegiatan.dart'; 
+//    harus sama persis dengan nama file/folder.
+// 3. Jalankan perintah berikut di terminal pada root project Anda:
+//    flutter clean
+//    flutter pub get
+//    flutter pub run build_runner build --delete-conflicting-outputs
+// 4. Restart VSCode/IDE dan jalankan ulang aplikasi Flutter Anda.
+
+// Tidak ada perubahan kode pada file ini. Jika error tetap muncul, lakukan langkah di atas.

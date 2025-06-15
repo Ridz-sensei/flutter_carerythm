@@ -15,12 +15,12 @@ class _PageKegiatanState extends State<PageKegiatan> {
   @override
   void initState() {
     super.initState();
-    _futureKegiatan = ApiService.fetchKegiatan();
+    _futureKegiatan = KegiatanService.fetchKegiatan();
   }
 
   Future<void> _refresh() async {
     setState(() {
-      _futureKegiatan = ApiService.fetchKegiatan();
+      _futureKegiatan = KegiatanService.fetchKegiatan();
     });
   }
 
@@ -178,7 +178,7 @@ class _PageKegiatanState extends State<PageKegiatan> {
                                               },
                                             );
                                             if (confirm == true) {
-                                              final success = await ApiService.deleteKegiatan(kegiatan.id);
+                                              final success = await KegiatanService.deleteKegiatan(kegiatan.id);
                                               if (success) {
                                                 if (mounted) {
                                                   ScaffoldMessenger.of(context).showSnackBar(

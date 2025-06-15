@@ -104,6 +104,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
       'kategori': _kategoriTerpilih,
       'waktu_mulai': "${_waktuMulai!.hour.toString().padLeft(2, '0')}:${_waktuMulai!.minute.toString().padLeft(2, '0')}",
       'waktu_selesai': "${_waktuSelesai!.hour.toString().padLeft(2, '0')}:${_waktuSelesai!.minute.toString().padLeft(2, '0')}",
+      // Kirim hari sebagai array agar validasi backend tidak error
       'hari': List<String>.from(_hariTerpilih),
       'catatan': _catatanController.text,
     };
@@ -120,6 +121,47 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Terjadi kesalahan koneksi: $e')),
       );
+    }
+  }
+
+  Future<void> _deleteJadwal() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: const Text('Apakah Anda yakin ingin menghapus jadwal ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      try {
+        final success = await JadwalService.deleteJadwal(widget.jadwalId);
+        if (success) {
+          if (mounted) {
+            Navigator.pop(context, true);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Jadwal berhasil dihapus')),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal menghapus jadwal')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan koneksi: $e')),
+        );
+      }
     }
   }
 
@@ -224,6 +266,16 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
                   foregroundColor: Colors.white,
                 ),
                 child: const Text("Simpan Perubahan"),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: _deleteJadwal,
+                icon: const Icon(Icons.delete, color: Colors.white),
+                label: const Text("Hapus Jadwal"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
               ),
             ],
           ),

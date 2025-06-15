@@ -104,18 +104,24 @@ class JadwalService {
 
   static Future<bool> deleteJadwal(int id) async {
     final token = await _getToken();
-    if (token == null) {
-      throw Exception('Token tidak ditemukan. Silakan login ulang.');
-    }
+    if (token == null) throw Exception('Token tidak ditemukan');
+    final url = Uri.parse('$baseJadwalUrl/$id');
     final response = await http.delete(
-      Uri.parse('$baseJadwalUrl/$id'),
+      url,
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
       },
     );
     print('Delete jadwal status: ${response.statusCode}');
     print('Delete jadwal body: ${response.body}');
-    return response.statusCode == 200;
+    // Anggap sukses jika response mengandung success: true
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      if (decoded is Map && (decoded['success'] == true)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

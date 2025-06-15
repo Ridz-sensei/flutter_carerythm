@@ -50,9 +50,8 @@ class Jadwal {
       'kategori': kategori,
       'waktu_mulai': waktuMulai,
       'waktu_selesai': waktuSelesai,
-      // Kirim array jika backend menerima array, atau string jika backend menerima string
-      'hari': hari, // jika backend ingin array, gunakan ini
-      // 'hari': hari.join(','), // jika backend ingin string, gunakan ini
+      // Always send as comma-separated string for backend compatibility
+      'hari': hari.join(','),
       'catatan': catatan,
     };
   }

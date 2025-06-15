@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http; // Paket untuk melakukan HTTP request
 import 'package:shared_preferences/shared_preferences.dart'; // Untuk menyimpan dan mengambil data lokal, seperti token
 import '../models/kegiatan.dart'; // Model kegiatan yang merepresentasikan data
 
-class ApiService {
+class KegiatanService {
   // URL dasar
   static const baseKegiatanUrl = 'http://127.0.0.1:8000/api/kegiatan';
 

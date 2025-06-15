@@ -59,7 +59,7 @@ class _EditKegiatanState extends State<EditKegiatan> {
       tempat: _tempatController.text.isEmpty ? null : _tempatController.text,
     );
     try {
-      final success = await ApiService.updateKegiatan(updated.toJson()..['id'] = updated.id);
+      final success = await KegiatanService.updateKegiatan(updated.toJson()..['id'] = updated.id);
       setState(() {
         _isLoading = false;
       });

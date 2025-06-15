@@ -7,6 +7,7 @@ import 'kegiatan/tambahKegiatan.dart';
 import 'kegiatan/editKegiatan.dart';
 import 'jadwal/jadwal_page.dart';
 import 'jadwal/tambah_jadwal_page.dart';
+import 'dart:convert';
 
 class CareRythmApp extends StatelessWidget {
   const CareRythmApp({super.key});
@@ -65,7 +66,15 @@ class _LoginPageState extends State<LoginPage> {
         // Cek token di SharedPreferences sebelum lanjut
         final prefs = await SharedPreferences.getInstance();
         final token = prefs.getString('token');
+        // Ambil username dari response
+        final data = response.body.isNotEmpty ? response.body : '{}';
+        final json = data.isNotEmpty ? jsonDecode(data) : {};
+        final username = json['username'] ?? json['data']?['username'] ?? '';
         if (token != null && token.isNotEmpty) {
+          // Simpan username ke SharedPreferences
+          if (username != null && username.toString().isNotEmpty) {
+            await prefs.setString('username', username.toString());
+          }
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => HomePage(email: email)),
