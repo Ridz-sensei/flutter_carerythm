@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/pencapaian.dart';
 import '../service/pencapaian_service.dart';
 import '../user/TambahPencapaian.dart';
+import '../user/EditPencapaian.dart';
 
 class HalamanPencapaian extends StatefulWidget {
   final String token;
@@ -53,6 +54,32 @@ class _HalamanPencapaianState extends State<HalamanPencapaian> {
     }
   }
 
+  void _editPencapaian(Pencapaian pencapaian) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPencapaianPage(
+          pencapaian: pencapaian,
+          token: widget.token,
+        ),
+      ),
+    );
+    if (result == true) {
+      _fetchPencapaian();
+    }
+  }
+
+  double _calculateProgress(Pencapaian pencapaian) {
+    if (pencapaian.target == 0) return 0.0;
+    return (pencapaian.jumlah / pencapaian.target).clamp(0.0, 1.0);
+  }
+
+  Color _getProgressColor(double progress) {
+    if (progress >= 1.0) return Colors.green;
+    if (progress >= 0.7) return Colors.orange;
+    return Colors.red;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,30 +104,165 @@ class _HalamanPencapaianState extends State<HalamanPencapaian> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _errorMessage != null
-                      ? Center(child: Text(_errorMessage!))
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 64,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _fetchPencapaian,
+                                child: const Text('Coba Lagi'),
+                              ),
+                            ],
+                          ),
+                        )
                       : _pencapaians.isEmpty
-                          ? const Center(child: Text('Belum ada pencapaian.'))
+                          ? const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.emoji_events_outlined,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Belum ada pencapaian.',
+                                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Tambahkan pencapaian pertama Anda!',
+                                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            )
                           : ListView.builder(
                               itemCount: _pencapaians.length,
                               itemBuilder: (context, index) {
                                 final item = _pencapaians[index];
+                                final progress = _calculateProgress(item);
+                                final progressColor = _getProgressColor(progress);
+                                
                                 return Card(
                                   elevation: 3,
                                   margin: const EdgeInsets.symmetric(vertical: 8),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15),
                                   ),
-                                  child: ListTile(
-                                    leading: const Icon(Icons.emoji_events, color: Colors.amber),
-                                    title: Text(item.nama),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text('Jumlah: ${item.jumlah} / ${item.target}'),
-                                        if (item.kategori != null && item.kategori!.isNotEmpty)
-                                          Text('Kategori: ${item.kategori}'),
-                                        Text('Tanggal: ${item.waktuPencapaian}'),
-                                      ],
+                                  child: InkWell(
+                                    onTap: () => _editPencapaian(item),
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                progress >= 1.0 
+                                                    ? Icons.emoji_events 
+                                                    : Icons.emoji_events_outlined,
+                                                color: progress >= 1.0 
+                                                    ? Colors.amber 
+                                                    : Colors.grey,
+                                                size: 28,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      item.nama,
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    if (item.kategori != null && item.kategori!.isNotEmpty)
+                                                      Text(
+                                                        item.kategori!,
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.grey[600],
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                              if (progress >= 1.0)
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.green,
+                                                    borderRadius: BorderRadius.circular(12),
+                                                  ),
+                                                  child: const Text(
+                                                    'SELESAI',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                '${item.jumlah} / ${item.target}',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: progressColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                '${(progress * 100).toStringAsFixed(0)}%',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          LinearProgressIndicator(
+                                            value: progress,
+                                            backgroundColor: Colors.grey[300],
+                                            valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Tanggal: ${item.waktuPencapaian}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 );
@@ -119,6 +281,13 @@ class _HalamanPencapaianState extends State<HalamanPencapaian> {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ],
