@@ -44,16 +44,19 @@ class PencapaianService {
         throw Exception('Token tidak ditemukan. Silakan login ulang.');
       }
     }
+    print('Token yang dikirim ke backend: $token'); // Debug token
     final response = await http.post(
-      Uri.parse('$baseUrl/tambah'),
+      Uri.parse(baseUrl),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
       body: json.encode({
         'nama': pencapaian.nama,
+        'jumlah': pencapaian.jumlah,
         'target': pencapaian.target,
         'kategori': pencapaian.kategori,
+        'waktu_pencapaian': pencapaian.waktuPencapaian,
       }),
     );
     if (response.statusCode == 201 || response.statusCode == 200) {
@@ -64,7 +67,9 @@ class PencapaianService {
         throw Exception('Gagal menambahkan pencapaian: ${jsonBody['message'] ?? 'Unknown error'}');
       }
     } else {
-      // Coba ambil pesan error dari backend jika ada
+      // Debug: print response body jika error
+      print('Tambah pencapaian gagal: ${response.statusCode}');
+      print('Response body: ${response.body}');
       try {
         final jsonBody = json.decode(response.body);
         if (jsonBody is Map && jsonBody['message'] != null) {

@@ -68,8 +68,8 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void dropuptambah(BuildContext context) {
-    showModalBottomSheet(
+  void dropuptambah(BuildContext context) async {
+    final result = await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
@@ -79,12 +79,16 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(context);
-                  Navigator.push(
+                  final res = await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => TambahKegiatan()),
                   );
+                  if (res == true && mounted) {
+                    await _refreshKegiatan();
+                    setState(() {}); // pastikan rebuild setelah refresh
+                  }
                 },
                 child: const Text("Tambah Kegiatan"),
               ),
@@ -99,6 +103,7 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+    // Tidak perlu refresh di sini, sudah di-handle setelah tambah kegiatan
   }
 
   void dropupmenu(BuildContext context) {
@@ -159,9 +164,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    const double paddingdaftar = 5;
+    const double cardWidth = 370;
+    const double cardHeight = 220;
 
     return Scaffold(
+      // Tambahkan warna background yang lebih cerah
+      backgroundColor: Colors.deepPurple[50],
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,236 +248,274 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Ubah label menjadi "Jadwal Anda"
-                    Container(
-                      padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Jadwal Anda:',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ],
-                      ),
-                    ),
-                    FutureBuilder<List<Jadwal>>(
-                      future: _futureJadwal,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: SingleChildScrollView(
-                              child: Text(
-                                'Gagal memuat jadwal:\n${snapshot.error}',
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          );
-                        }
-                        final jadwalList = snapshot.data ?? [];
-                        if (jadwalList.isEmpty) {
-                          return const Center(child: Text('Belum ada jadwal'));
-                        }
-                        return Column(
-                          children: jadwalList.map((jadwal) {
-                            return Card(
-                              elevation: 2,
-                              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: ListTile(
-                                title: Text(jadwal.namaJadwal, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Hari: ${jadwal.hari.join(', ')}"),
-                                    Text("Jam: ${jadwal.waktuMulai} - ${jadwal.waktuSelesai}"),
-                                    if (jadwal.catatan != null && jadwal.catatan!.isNotEmpty)
-                                      Text("Catatan: ${jadwal.catatan}"),
-                                  ],
-                                ),
-                                trailing: Icon(Icons.event_note, color: Colors.deepPurple),
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    // Kegiatan Hari Ini
-                    Container(
-                      padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Kegiatan Hari Ini:',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ],
-                      ),
-                    ),
-                    FutureBuilder<List<Kegiatan>>(
-                      future: _futureKegiatan,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: SingleChildScrollView(
-                              child: Text(
-                                'Gagal memuat kegiatan:\n${snapshot.error}',
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          );
-                        }
-                        final kegiatanList = snapshot.data ?? [];
-                        if (kegiatanList.isEmpty) {
-                          return const Center(child: Text('Tidak ada kegiatan hari ini'));
-                        }
-                        return Column(
-                          children: kegiatanList.map((kegiatan) {
-                            return Card(
-                              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                              child: ListTile(
-                                leading: Icon(Icons.event, color: Colors.deepPurple[400]),
-                                title: Text(kegiatan.kegiatan),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('${kegiatan.waktuMulai} - ${kegiatan.waktuSelesai}'),
-                                    if (kegiatan.tanggal.isNotEmpty)
-                                      Text('Tanggal: ${kegiatan.tanggal}'),
-                                    if (kegiatan.tempat != null && kegiatan.tempat!.isNotEmpty)
-                                      Text('Tempat: ${kegiatan.tempat}'),
-                                    if (kegiatan.catatan != null && kegiatan.catatan!.isNotEmpty)
-                                      Text('Catatan: ${kegiatan.catatan}'),
-                                  ],
-                                ),
-                                trailing: ElevatedButton(
-                                  onPressed: () async {
-                                    final confirm = await showDialog<bool>(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: const Text('Konfirmasi'),
-                                        content: const Text('Tandai kegiatan ini selesai? Kegiatan akan dihapus dari database.'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
-                                            child: const Text('Batal'),
+                    // Card Jadwal (jarak antar card diperkecil)
+                    Center(
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4), // jarak antar card lebih kecil
+                        elevation: 4,
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        child: Container(
+                          width: cardWidth,
+                          height: cardHeight,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Jadwal Anda:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: FutureBuilder<List<Jadwal>>(
+                                  future: _futureJadwal,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const Center(child: CircularProgressIndicator());
+                                    }
+                                    if (snapshot.hasError) {
+                                      return Center(
+                                        child: SingleChildScrollView(
+                                          child: Text(
+                                            'Gagal memuat jadwal:\n${snapshot.error}',
+                                            textAlign: TextAlign.center,
                                           ),
-                                          TextButton(
-                                            onPressed: () => Navigator.pop(context, true),
-                                            child: const Text('Selesai', style: TextStyle(color: Colors.red)),
-                                          ),
-                                        ],
+                                        ),
+                                      );
+                                    }
+                                    final jadwalList = snapshot.data ?? [];
+                                    if (jadwalList.isEmpty) {
+                                      return const Center(child: Text('Belum ada jadwal'));
+                                    }
+                                    return Scrollbar(
+                                      thumbVisibility: true,
+                                      child: ListView.builder(
+                                        itemCount: jadwalList.length,
+                                        itemBuilder: (context, idx) {
+                                          final jadwal = jadwalList[idx];
+                                          return Card(
+                                            elevation: 1,
+                                            margin: const EdgeInsets.symmetric(vertical: 4),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: ListTile(
+                                              title: Text(jadwal.namaJadwal, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                              subtitle: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text("Hari: ${jadwal.hari.join(', ')}"),
+                                                  Text("Jam: ${jadwal.waktuMulai} - ${jadwal.waktuSelesai}"),
+                                                  if (jadwal.catatan != null && jadwal.catatan!.isNotEmpty)
+                                                    Text("Catatan: ${jadwal.catatan}"),
+                                                ],
+                                              ),
+                                              trailing: Icon(Icons.event_note, color: Colors.deepPurple),
+                                            ),
+                                          );
+                                        },
                                       ),
                                     );
-                                    if (confirm == true) {
-                                      final success = await KegiatanService.deleteKegiatan(kegiatan.id);
-                                      if (success) {
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Kegiatan Anda telah ditandai selesai')),
-                                          );
-                                          _refreshKegiatan();
-                                        }
-                                      } else {
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Gagal menghapus kegiatan')),
-                                          );
-                                        }
-                                      }
-                                    }
                                   },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.deepPurple[100],
-                                    foregroundColor: Colors.deepPurple[400],
-                                  ),
-                                  child: Text('selesai', style: TextStyle(color: Colors.deepPurple[400])),
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    // Pencapaianmu
-                    Container(
-                      padding: const EdgeInsets.only(left: 30, bottom: 5, top: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text('Pencapaianmu:', style: TextStyle(color: Colors.black)),
-                        ],
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    Container(
-                      margin: const EdgeInsets.only(right: 20, left: 20, bottom: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          GestureDetector(
-                            onTap: tambah,
-                            child: Container(
-                              height: 125,
-                              width: 150,
-                              decoration: BoxDecoration(
-                                color: Colors.deepPurple,
-                                borderRadius: BorderRadius.circular(20),
+                    // Card Kegiatan
+                    Center(
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        elevation: 4,
+                        color: Colors.deepPurple[100],
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        child: Container(
+                          width: cardWidth,
+                          height: cardHeight,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Kegiatan Hari Ini:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
+                              const SizedBox(height: 11),
+                              Expanded(
+                                child: FutureBuilder<List<Kegiatan>>(
+                                  future: _futureKegiatan,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const Center(child: CircularProgressIndicator());
+                                    }
+                                    if (snapshot.hasError) {
+                                      return Center(
+                                        child: SingleChildScrollView(
+                                          child: Text(
+                                            'Gagal memuat kegiatan:\n${snapshot.error}',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    final kegiatanList = snapshot.data ?? [];
+                                    if (kegiatanList.isEmpty) {
+                                      return const Center(child: Text('Tidak ada kegiatan hari ini'));
+                                    }
+                                    return Scrollbar(
+                                      thumbVisibility: true,
+                                      child: ListView.builder(
+                                        itemCount: kegiatanList.length,
+                                        itemBuilder: (context, idx) {
+                                          final kegiatan = kegiatanList[idx];
+                                          return Card(
+                                            margin: const EdgeInsets.symmetric(vertical: 4),
+                                            child: ListTile(
+                                              leading: Icon(Icons.event, color: Colors.deepPurple[400]),
+                                              title: Text(kegiatan.kegiatan),
+                                              subtitle: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text('${kegiatan.waktuMulai} - ${kegiatan.waktuSelesai}'),
+                                                  if (kegiatan.tanggal.isNotEmpty)
+                                                    Text('Tanggal: ${kegiatan.tanggal}'),
+                                                  if (kegiatan.tempat != null && kegiatan.tempat!.isNotEmpty)
+                                                    Text('Tempat: ${kegiatan.tempat}'),
+                                                  if (kegiatan.catatan != null && kegiatan.catatan!.isNotEmpty)
+                                                    Text('Catatan: ${kegiatan.catatan}'),
+                                                ],
+                                              ),
+                                              trailing: ElevatedButton(
+                                                onPressed: () async {
+                                                  final confirm = await showDialog<bool>(
+                                                    context: context,
+                                                    builder: (context) => AlertDialog(
+                                                      title: const Text('Konfirmasi'),
+                                                      content: const Text('Tandai kegiatan ini selesai? Kegiatan akan dihapus dari database.'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () => Navigator.pop(context, false),
+                                                          child: const Text('Batal'),
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () => Navigator.pop(context, true),
+                                                          child: const Text('Selesai', style: TextStyle(color: Colors.red)),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                  if (confirm == true) {
+                                                    final success = await KegiatanService.deleteKegiatan(kegiatan.id);
+                                                    if (success) {
+                                                      if (mounted) {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          const SnackBar(content: Text('Kegiatan Anda telah ditandai selesai')),
+                                                        );
+                                                        _refreshKegiatan();
+                                                      }
+                                                    } else {
+                                                      if (mounted) {
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          const SnackBar(content: Text('Gagal menghapus kegiatan')),
+                                                        );
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.deepPurple[100],
+                                                  foregroundColor: Colors.deepPurple[400],
+                                                ),
+                                                child: Text('selesai', style: TextStyle(color: Colors.deepPurple[400])),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Icon(
-                                    Icons.fitness_center,
-                                    size: 40,
-                                    color: Colors.red,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Text('$count', style: TextStyle(fontSize: 20)),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
+                            ],
                           ),
-                          GestureDetector(
-                            onTap: tambah1,
-                            child: Container(
-                              height: 125,
-                              width: 150,
-                              decoration: BoxDecoration(
-                                color: Colors.deepPurple,
-                                borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                    // Card Pencapaian
+                    Center(
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        elevation: 4,
+                        color: Colors.amber[50],
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        child: Container(
+                          width: cardWidth,
+                          height: cardHeight,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Pencapaianmu:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
+                              const SizedBox(height: 8),
+                              Expanded(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: tambah,
+                                      child: Container(
+                                        height: 125,
+                                        width: 150,
+                                        decoration: BoxDecoration(
+                                          color: Colors.deepPurple[200],
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Icon(
+                                              Icons.fitness_center,
+                                              size: 40,
+                                              color: Colors.red,
+                                            ),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Text('$count', style: TextStyle(fontSize: 20, color: Colors.deepPurple[900])),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: tambah1,
+                                      child: Container(
+                                        height: 125,
+                                        width: 150,
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber[200],
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Icon(Icons.book, size: 40, color: Colors.amber[900]),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Text('$count1', style: TextStyle(fontSize: 20, color: Colors.deepPurple[900])),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Icon(Icons.book, size: 40, color: Colors.amber),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Text('$count1', style: TextStyle(fontSize: 20)),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ],

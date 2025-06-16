@@ -115,6 +115,7 @@ class _AddPencapaianPageState extends State<AddPencapaianPage> {
                 ElevatedButton(
                   onPressed: () async {
                     String nama = namaController.text;
+                    String jumlah = jumlahController.text;
                     String target = targetController.text;
                     String kategori = kategoriController.text;
                     if (nama.isEmpty || target.isEmpty || kategori.isEmpty) {
@@ -125,10 +126,12 @@ class _AddPencapaianPageState extends State<AddPencapaianPage> {
                     }
                     final pencapaian = Pencapaian(
                       nama: nama,
-                      jumlah: 0, // jumlah selalu 0 saat tambah baru (backend handle)
+                      jumlah: int.tryParse(jumlah) ?? 0,
                       target: int.tryParse(target) ?? 0,
                       kategori: kategori,
-                      waktuPencapaian: "", // backend handle waktu_pencapaian
+                      waktuPencapaian: waktuPencapaian != null
+                          ? "${waktuPencapaian!.year.toString().padLeft(4, '0')}-${waktuPencapaian!.month.toString().padLeft(2, '0')}-${waktuPencapaian!.day.toString().padLeft(2, '0')}"
+                          : "",
                     );
                     try {
                       bool success = await PencapaianService.tambahPencapaian(pencapaian, widget.token);
