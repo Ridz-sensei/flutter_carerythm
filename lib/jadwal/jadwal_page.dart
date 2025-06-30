@@ -17,9 +17,11 @@ class _JadwalPageState extends State<JadwalPage> {
   @override
   void initState() {
     super.initState();
+    // Ambil data jadwal saat halaman pertama kali dibuka
     _futureJadwal = JadwalService.fetchJadwalList();
   }
 
+  // Fungsi untuk refresh data jadwal
   Future<void> _refresh() async {
     setState(() {
       _futureJadwal = JadwalService.fetchJadwalList();
@@ -128,6 +130,7 @@ class _JadwalPageState extends State<JadwalPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      // Tampilkan hari jadwal
                                       Text(
                                         (jadwal.hari.isNotEmpty ? jadwal.hari.join(', ') : '-'),
                                         style: const TextStyle(
@@ -136,6 +139,7 @@ class _JadwalPageState extends State<JadwalPage> {
                                         ),
                                       ),
                                       const SizedBox(height: 8),
+                                      // Nama jadwal
                                       Text(
                                         jadwal.namaJadwal,
                                         style: const TextStyle(
@@ -143,15 +147,18 @@ class _JadwalPageState extends State<JadwalPage> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
+                                      // Kategori jadwal
                                       Text(
                                         "Kategori: ${jadwal.kategori}",
                                         style: const TextStyle(
                                           fontStyle: FontStyle.italic,
                                         ),
                                       ),
+                                      // Catatan/deskripsi jadwal
                                       Text(
                                         "Deskripsi: ${jadwal.catatan ?? ''}",
                                       ),
+                                      // Waktu mulai dan selesai
                                       Text(
                                         "${jadwal.waktuMulai} - ${jadwal.waktuSelesai}",
                                         style: const TextStyle(

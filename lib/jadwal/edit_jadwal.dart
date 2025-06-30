@@ -3,6 +3,7 @@ import '../service/jadwal_service.dart';
 
 // Halaman Edit Jadwal
 class EditJadwalPage extends StatefulWidget {
+  // menerima id dan data jadwal yang akan diedit
   final int jadwalId;
   final Map<String, dynamic> jadwalData;
   const EditJadwalPage({
@@ -24,12 +25,14 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
   TimeOfDay? _waktuMulai;
   TimeOfDay? _waktuSelesai;
 
+  // Daftar kategori yang tersedia
   final List<String> _kategoriList = [
     'Pelajaran',
     'Olahraga',
     'Hiburan',
     'Lainnya',
   ];
+  // Daftar hari dalam seminggu
   final List<String> _hariList = [
     'Senin',
     'Selasa',
@@ -43,6 +46,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
   @override
   void initState() {
     super.initState();
+    // Inisialisasi controller dan data awal dari jadwalData
     _namaController = TextEditingController(
       text: widget.jadwalData['nama_jadwal'] ?? widget.jadwalData['nama'] ?? '',
     );
@@ -60,6 +64,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
     _waktuSelesai = _parseTime(widget.jadwalData['waktu_selesai']);
   }
 
+  // Fungsi untuk parsing waktu dari string ke TimeOfDay
   TimeOfDay? _parseTime(dynamic time) {
     if (time == null || time.toString().isEmpty) return null;
     final parts = time.toString().split(':');
@@ -70,6 +75,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
     );
   }
 
+  // Fungsi untuk memilih waktu mulai/selesai
   Future<void> _pilihWaktu(BuildContext context, bool isMulai) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -88,6 +94,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
     }
   }
 
+  // Fungsi untuk update jadwal ke backend
   Future<void> _updateJadwal() async {
     if (!_formKey.currentState!.validate() ||
         _kategoriTerpilih == null ||
@@ -124,6 +131,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
     }
   }
 
+  // Fungsi untuk menghapus jadwal
   Future<void> _deleteJadwal() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -175,6 +183,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
           key: _formKey,
           child: ListView(
             children: [
+              // Input nama jadwal
               TextFormField(
                 controller: _namaController,
                 decoration: const InputDecoration(
@@ -185,6 +194,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
                     value == null || value.isEmpty ? 'Nama jadwal tidak boleh kosong' : null,
               ),
               const SizedBox(height: 16),
+              // Dropdown kategori
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(
                   labelText: 'Kategori',
@@ -202,6 +212,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
                 validator: (value) => value == null ? 'Pilih kategori' : null,
               ),
               const SizedBox(height: 16),
+              // Input catatan
               TextFormField(
                 controller: _catatanController,
                 maxLines: 3,
@@ -213,6 +224,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
                     value != null && value.length > 255 ? 'Maksimal 255 karakter' : null,
               ),
               const SizedBox(height: 16),
+              // Pilihan hari
               const Text('Pilih Hari:'),
               Wrap(
                 spacing: 8,
@@ -233,6 +245,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
                 }).toList(),
               ),
               const SizedBox(height: 16),
+              // Pilihan waktu mulai dan selesai
               Row(
                 children: [
                   Expanded(
@@ -259,6 +272,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
                 ],
               ),
               const SizedBox(height: 24),
+              // Tombol simpan perubahan
               ElevatedButton(
                 onPressed: _updateJadwal,
                 style: ElevatedButton.styleFrom(
@@ -268,6 +282,7 @@ class _EditJadwalPageState extends State<EditJadwalPage> {
                 child: const Text("Simpan Perubahan"),
               ),
               const SizedBox(height: 12),
+              // Tombol hapus jadwal
               ElevatedButton.icon(
                 onPressed: _deleteJadwal,
                 icon: const Icon(Icons.delete, color: Colors.white),

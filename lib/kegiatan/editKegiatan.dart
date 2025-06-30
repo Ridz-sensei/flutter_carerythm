@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/kegiatan.dart';
 import '../service/kegiatan_service.dart';
 
+// Widget untuk halaman edit kegiatan
 class EditKegiatan extends StatefulWidget {
   const EditKegiatan({super.key});
 
@@ -10,25 +11,36 @@ class EditKegiatan extends StatefulWidget {
 }
 
 class _EditKegiatanState extends State<EditKegiatan> {
+  // Key untuk form validasi
   final _formKey = GlobalKey<FormState>();
+  // Controller untuk input nama kegiatan
   late TextEditingController _namaController;
+  // Controller untuk input catatan
   late TextEditingController _catatanController;
+  // Controller untuk input tempat
   late TextEditingController _tempatController;
+  // Variabel untuk menyimpan tanggal kegiatan
   late DateTime _tanggal;
+  // Variabel untuk menyimpan waktu mulai
   late TimeOfDay _waktuMulai;
+  // Variabel untuk menyimpan waktu selesai
   late TimeOfDay _waktuSelesai;
+  // Menandai proses loading saat update
   bool _isLoading = false;
+  // Menyimpan data kegiatan yang akan diedit
   late Kegiatan kegiatan;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Mengambil argumen dari route (data kegiatan yang akan diedit)
     final args = ModalRoute.of(context)!.settings.arguments;
     if (args is Map<String, dynamic>) {
       kegiatan = Kegiatan.fromJson(args);
     } else {
       throw Exception('Argumen tidak valid untuk EditKegiatan');
     }
+    // Inisialisasi controller dan variabel dengan data kegiatan
     _namaController = TextEditingController(text: kegiatan.kegiatan);
     _catatanController = TextEditingController(text: kegiatan.catatan ?? '');
     _tempatController = TextEditingController(text: kegiatan.tempat ?? '');
@@ -37,6 +49,7 @@ class _EditKegiatanState extends State<EditKegiatan> {
     _waktuSelesai = _parseTime(kegiatan.waktuSelesai);
   }
 
+  // Fungsi untuk mengubah string waktu menjadi TimeOfDay
   TimeOfDay _parseTime(String time) {
     final parts = time.split(':');
     return TimeOfDay(
@@ -45,10 +58,12 @@ class _EditKegiatanState extends State<EditKegiatan> {
     );
   }
 
+  // Fungsi untuk mengupdate data kegiatan
   Future<void> _updateKegiatan() async {
     setState(() {
       _isLoading = true;
     });
+    // Membuat objek Kegiatan baru dengan data dari form
     final updated = Kegiatan(
       id: kegiatan.id,
       kegiatan: _namaController.text,
@@ -86,7 +101,6 @@ class _EditKegiatanState extends State<EditKegiatan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Hilangkan AppBar agar lebih mirip desain tambah kegiatan
       body: Container(
         width: double.infinity,
         height: double.infinity,

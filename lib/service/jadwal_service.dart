@@ -1,16 +1,19 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/jadwal.dart';
+// Service untuk mengelola data jadwal dengan API backend
+import 'dart:convert'; // Library untuk encoding dan decoding JSON
+import 'package:http/http.dart' as http; // Library HTTP untuk request ke backend
+import 'package:shared_preferences/shared_preferences.dart'; // Untuk menyimpan dan mengambil token autentikasi
+import '../models/jadwal.dart'; // Model Jadwal
 
 class JadwalService {
-  static const baseJadwalUrl = 'http://127.0.0.1:8000/api/jadwal';
+  static const baseJadwalUrl = 'http://127.0.0.1:8000/api/jadwal'; // URL dasar endpoint jadwal
 
+  // Mengambil token autentikasi dari SharedPreferences
   static Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
+  // Mengambil daftar jadwal dari backend
   static Future<List<Jadwal>> fetchJadwalList() async {
     final token = await _getToken();
     if (token == null || token.isEmpty) {
@@ -28,6 +31,7 @@ class JadwalService {
     print('Response body: ${response.body}');
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
+      // Pastikan response memiliki key 'data' dan bertipe List
       if (decoded is Map && decoded.containsKey('data') && decoded['data'] is List) {
         final List data = decoded['data'];
         return data.map((json) => Jadwal.fromJson(json)).toList();
@@ -43,6 +47,7 @@ class JadwalService {
     }
   }
 
+  // Menambah jadwal baru ke backend
   static Future<bool> addJadwal(Map<String, dynamic> data) async {
     final token = await _getToken();
     if (token == null) {
@@ -80,6 +85,7 @@ class JadwalService {
     }
   }
 
+  // Mengupdate jadwal berdasarkan id
   static Future<bool> updateJadwal(int id, Map<String, dynamic> data) async {
     final token = await _getToken();
     if (token == null) {
@@ -102,6 +108,7 @@ class JadwalService {
     }
   }
 
+  // Menghapus jadwal berdasarkan id
   static Future<bool> deleteJadwal(int id) async {
     final token = await _getToken();
     if (token == null) throw Exception('Token tidak ditemukan');
